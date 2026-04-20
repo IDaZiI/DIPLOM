@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginUser } from '../api/auth'
+import { setTokens } from '../utils/auth'
 
 function AuthPage() {
   const [formData, setFormData] = useState({
@@ -25,8 +26,7 @@ function AuthPage() {
     try {
       const response = await loginUser(formData)
 
-      localStorage.setItem('access', response.data.access)
-      localStorage.setItem('refresh', response.data.refresh)
+      setTokens(response.data.access, response.data.refresh)
 
       navigate('/availability')
     } catch (err) {

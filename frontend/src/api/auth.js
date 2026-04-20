@@ -1,7 +1,6 @@
 import axios from 'axios'
-
-const API_URL = 'http://127.0.0.1:8000/api/'
+import { BASE_API_URL } from '../config/api'
 
 export const loginUser = async (data) => {
-  return axios.post(`${API_URL}token/`, data)
+  return axios.post(`${BASE_API_URL}token/`, data)
 }

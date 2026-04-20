@@ -1,11 +1,11 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { clearTokens } from '../utils/auth'
 
 function Navbar() {
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    localStorage.removeItem('access')
-    localStorage.removeItem('refresh')
+    clearTokens()
     navigate('/auth')
   }
 

@@ -1,9 +1,11 @@
 import axios from 'axios'
+import { getAccessToken } from '../utils/auth'
+import { BASE_API_URL } from '../config/api'
 
-const API_URL = 'http://127.0.0.1:8000/api/availabilities/'
+const API_URL = `${BASE_API_URL}availabilities/`
 
 const getAuthHeader = () => {
-  const token = localStorage.getItem('access')
+  const token = getAccessToken()
   return {
     headers: {
       Authorization: `Bearer ${token}`,

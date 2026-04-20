@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createAvailability } from '../api/availability'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 function AvailabilityForm() {
   const [formData, setFormData] = useState({
@@ -12,8 +13,8 @@ function AvailabilityForm() {
   const [error, setError] = useState('')
   const [showMessage, setShowMessage] = useState(false)
   const [showError, setShowError] = useState(false)
-
   const today = new Date().toISOString().split('T')[0]
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (!message) return
@@ -56,37 +57,13 @@ function AvailabilityForm() {
     })
   }
 
-  const getErrorMessage = (data) => {
-    if (!data) {
-      return 'Не удалось сохранить запись.'
-    }
-
-    if (typeof data === 'string') {
-      return data
-    }
-
-    if (data.non_field_errors?.length) {
-      return data.non_field_errors[0]
-    }
-
-    if (data.detail) {
-      return data.detail
-    }
-
-    const firstKey = Object.keys(data)[0]
-    if (firstKey && Array.isArray(data[firstKey]) && data[firstKey].length > 0) {
-      return data[firstKey][0]
-    }
-
-    return 'Не удалось сохранить запись.'
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMessage('')
     setError('')
     setShowMessage(false)
     setShowError(false)
+    setIsSubmitting(true)
 
     try {
       await createAvailability(formData)
@@ -102,7 +79,9 @@ function AvailabilityForm() {
       console.error('Ошибка при сохранении:', err)
       const serverData = err.response?.data
       setShowError(true)
-      setError(getErrorMessage(serverData))
+      setError(getErrorMessage(serverData, 'Не удалось сохранить запись.'))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -145,8 +124,8 @@ function AvailabilityForm() {
         />
       </div>
 
-      <button type="submit" className="btn btn-primary">
-        Сохранить
+      <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+        {isSubmitting ? 'Сохранение...' : 'Сохранить'}
       </button>
 
       {message && (

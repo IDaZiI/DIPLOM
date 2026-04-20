@@ -32,6 +32,11 @@ button {
   border: none;
 }
 
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .page-container {
   max-width: 1000px;
   margin: 0 auto;

@@ -5,6 +5,9 @@ import {
   updateAvailability,
 } from '../api/availability'
 import ConfirmModal from './ConfirmModal'
+import { formatDate } from '../utils/formatDate'
+import { formatTime } from '../utils/formatTime'
+import { getErrorMessage } from '../utils/getErrorMessage'
 
 function AvailabilityList() {
   const [records, setRecords] = useState([])
@@ -23,31 +26,8 @@ function AvailabilityList() {
 
   const [recordToDelete, setRecordToDelete] = useState(null)
   const today = new Date().toISOString().split('T')[0]
-
-  const getErrorMessage = (data) => {
-    if (!data) {
-      return 'Не удалось выполнить действие.'
-    }
-
-    if (typeof data === 'string') {
-      return data
-    }
-
-    if (data.non_field_errors?.length) {
-      return data.non_field_errors[0]
-    }
-
-    if (data.detail) {
-      return data.detail
-    }
-
-    const firstKey = Object.keys(data)[0]
-    if (firstKey && Array.isArray(data[firstKey]) && data[firstKey].length > 0) {
-      return data[firstKey][0]
-    }
-
-    return 'Не удалось выполнить действие.'
-  }
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (!actionError) return
@@ -99,6 +79,7 @@ function AvailabilityList() {
 
     setActionError('')
     setShowActionError(false)
+    setIsDeleting(true)
 
     try {
       await deleteAvailability(recordToDelete.id)
@@ -109,6 +90,8 @@ function AvailabilityList() {
       setShowActionError(true)
       setActionError(getErrorMessage(err.response?.data))
       setRecordToDelete(null)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -118,8 +101,8 @@ function AvailabilityList() {
     setEditingId(record.id)
     setEditForm({
       date: record.date,
-      start_time: record.start_time.slice(0, 5),
-      end_time: record.end_time.slice(0, 5),
+      start_time: formatTime(record.start_time),
+      end_time: formatTime(record.end_time),
     })
   }
 
@@ -133,6 +116,7 @@ function AvailabilityList() {
   const handleEditSave = async (id) => {
     setActionError('')
     setShowActionError(false)
+    setIsSavingEdit(true)
 
     try {
       const response = await updateAvailability(id, editForm)
@@ -153,6 +137,8 @@ function AvailabilityList() {
       console.error('Ошибка при редактировании записи:', err)
       setShowActionError(true)
       setActionError(getErrorMessage(err.response?.data))
+    } finally {
+      setIsSavingEdit(false)
     }
   }
 
@@ -232,12 +218,15 @@ function AvailabilityList() {
                   <button
                     className="btn btn-primary"
                     onClick={() => handleEditSave(record.id)}
+                    disabled={isSavingEdit}
                   >
-                    Сохранить
+                    {isSavingEdit ? 'Сохранение...' : 'Сохранить'}
                   </button>
+
                   <button
                     className="btn btn-secondary"
                     onClick={handleEditCancel}
+                    disabled={isSavingEdit}
                   >
                     Отмена
                   </button>
@@ -252,9 +241,9 @@ function AvailabilityList() {
             ) : (
               <div>
                 <div className="record-meta">
-                  <h3 className="record-date">{record.date}</h3>
+                  <h3 className="record-date">{formatDate(record.date)}</h3>
                   <p className="record-time">
-                    Время: {record.start_time.slice(0, 5)} — {record.end_time.slice(0, 5)}
+                    Время: {formatTime(record.start_time)} — {formatTime(record.end_time)}
                   </p>
                 </div>
 
@@ -281,9 +270,10 @@ function AvailabilityList() {
       {recordToDelete && (
         <ConfirmModal
           title="Подтверждение удаления"
-          message={`Вы уверены, что хотите удалить запись на ${recordToDelete.date}?`}
+          message={`Вы уверены, что хотите удалить запись на ${formatDate(recordToDelete.date)}?`}
           onConfirm={confirmDelete}
           onCancel={closeDeleteModal}
+          isLoading={isDeleting}
         />
       )}
     </>
