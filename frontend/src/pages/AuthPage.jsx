@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loginUser, registerUser } from '../api/auth'
+import { loginUser } from '../api/auth'
 
 function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   })
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
 
   const navigate = useNavigate()
 
@@ -23,67 +21,62 @@ function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setMessage('')
 
     try {
-      if (isLogin) {
-        const response = await loginUser(formData)
+      const response = await loginUser(formData)
 
-        localStorage.setItem('access', response.data.access)
-        localStorage.setItem('refresh', response.data.refresh)
+      localStorage.setItem('access', response.data.access)
+      localStorage.setItem('refresh', response.data.refresh)
 
-        navigate('/dashboard')
-      } else {
-        await registerUser(formData)
-        setMessage('Регистрация успешна. Теперь войдите в систему.')
-        setIsLogin(true)
-      }
+      navigate('/dashboard')
     } catch (err) {
-      console.error('Ошибка авторизации:', err)
-      setError('Ошибка входа или регистрации.')
+      console.error('Ошибка входа:', err)
+      setError('Неверный логин или пароль.')
     }
   }
 
   return (
-    <div style={{ maxWidth: '400px', margin: '60px auto' }}>
-      <h1>{isLogin ? 'Вход' : 'Регистрация'}</h1>
+    <div className="auth-wrapper">
+      <div className="card auth-card">
+        <h1 className="auth-title">Вход</h1>
+        <p className="auth-text">
+          Войдите в систему, используя выданные администратором учетные данные.
+        </p>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
-      >
-        <input
-          type="text"
-          name="username"
-          placeholder="Имя пользователя"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
+        <form onSubmit={handleSubmit} className="form">
+          <div>
+            <label htmlFor="username">Имя пользователя</label>
+            <input
+              id="username"
+              type="text"
+              name="username"
+              placeholder="Введите имя пользователя"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Пароль"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+          <div>
+            <label htmlFor="password">Пароль</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Введите пароль"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <button type="submit">
-          {isLogin ? 'Войти' : 'Зарегистрироваться'}
-        </button>
-      </form>
+          <button type="submit" className="btn btn-primary">
+            Войти
+          </button>
+        </form>
 
-      {message && <p style={{ color: 'green', marginTop: '12px' }}>{message}</p>}
-      {error && <p style={{ color: 'red', marginTop: '12px' }}>{error}</p>}
-
-      <p style={{ marginTop: '15px' }}>
-        {isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
-        <button type="button" onClick={() => setIsLogin(!isLogin)}>
-          {isLogin ? 'Зарегистрироваться' : 'Войти'}
-        </button>
-      </p>
+        {error && <p className="message-error">{error}</p>}
+      </div>
     </div>
   )
 }

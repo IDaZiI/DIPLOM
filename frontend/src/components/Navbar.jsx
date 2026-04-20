@@ -10,19 +10,19 @@ function Navbar() {
   }
 
   return (
-    <nav
-      style={{
-        display: 'flex',
-        gap: '20px',
-        padding: '15px 20px',
-        backgroundColor: '#f2f2f2',
-        borderBottom: '1px solid #ddd',
-      }}
-    >
-      <Link to="/dashboard">Главная</Link>
-      <Link to="/availability">Моя доступность</Link>
-      <Link to="/records">Мои записи</Link>
-      <button onClick={handleLogout}>Выйти</button>
+    <nav className="navbar">
+      <div className="navbar-inner">
+        <div className="navbar-brand">Waiter Module</div>
+
+        <div className="navbar-links">
+          <Link to="/dashboard" className="nav-link">Главная</Link>
+          <Link to="/availability" className="nav-link">Моя доступность</Link>
+          <Link to="/records" className="nav-link">Мои записи</Link>
+          <button className="btn btn-secondary" onClick={handleLogout}>
+            Выйти
+          </button>
+        </div>
+      </div>
     </nav>
   )
 }

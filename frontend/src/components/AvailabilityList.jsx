@@ -4,11 +4,13 @@ import {
   deleteAvailability,
   updateAvailability,
 } from '../api/availability'
+import ConfirmModal from './ConfirmModal'
 
 function AvailabilityList() {
   const [records, setRecords] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [actionError, setActionError] = useState('')
 
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({
@@ -16,6 +18,33 @@ function AvailabilityList() {
     start_time: '',
     end_time: '',
   })
+
+  const [recordToDelete, setRecordToDelete] = useState(null)
+
+  const getErrorMessage = (data) => {
+    if (!data) {
+      return 'Не удалось выполнить действие.'
+    }
+
+    if (typeof data === 'string') {
+      return data
+    }
+
+    if (data.non_field_errors?.length) {
+      return data.non_field_errors[0]
+    }
+
+    if (data.detail) {
+      return data.detail
+    }
+
+    const firstKey = Object.keys(data)[0]
+    if (firstKey && Array.isArray(data[firstKey]) && data[firstKey].length > 0) {
+      return data[firstKey][0]
+    }
+
+    return 'Не удалось выполнить действие.'
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,17 +62,35 @@ function AvailabilityList() {
     fetchData()
   }, [])
 
-  const handleDelete = async (id) => {
+  const openDeleteModal = (record) => {
+    setActionError('')
+    setRecordToDelete(record)
+  }
+
+  const closeDeleteModal = () => {
+    setRecordToDelete(null)
+  }
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) {
+      return
+    }
+
+    setActionError('')
+
     try {
-      await deleteAvailability(id)
-      setRecords(records.filter((record) => record.id !== id))
+      await deleteAvailability(recordToDelete.id)
+      setRecords(records.filter((record) => record.id !== recordToDelete.id))
+      setRecordToDelete(null)
     } catch (err) {
       console.error('Ошибка при удалении записи:', err)
-      alert('Не удалось удалить запись.')
+      setActionError(getErrorMessage(err.response?.data))
+      setRecordToDelete(null)
     }
   }
 
   const handleEditClick = (record) => {
+    setActionError('')
     setEditingId(record.id)
     setEditForm({
       date: record.date,
@@ -60,6 +107,8 @@ function AvailabilityList() {
   }
 
   const handleEditSave = async (id) => {
+    setActionError('')
+
     try {
       const response = await updateAvailability(id, editForm)
 
@@ -77,11 +126,12 @@ function AvailabilityList() {
       })
     } catch (err) {
       console.error('Ошибка при редактировании записи:', err)
-      alert('Не удалось обновить запись.')
+      setActionError(getErrorMessage(err.response?.data))
     }
   }
 
   const handleEditCancel = () => {
+    setActionError('')
     setEditingId(null)
     setEditForm({
       date: '',
@@ -95,80 +145,105 @@ function AvailabilityList() {
   }
 
   if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>
+    return <p className="message-error">{error}</p>
   }
 
   if (records.length === 0) {
-    return <p>Записей пока нет.</p>
+    return <div className="card">Записей пока нет.</div>
   }
 
   return (
-    <div style={{ marginTop: '20px' }}>
-      {records.map((record) => (
-        <div
-          key={record.id}
-          style={{
-            border: '1px solid #ccc',
-            padding: '12px',
-            marginBottom: '10px',
-            borderRadius: '6px',
-            maxWidth: '500px',
-          }}
-        >
-          {editingId === record.id ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <label>Дата</label>
-              <input
-                type="date"
-                name="date"
-                value={editForm.date}
-                onChange={handleEditChange}
-              />
+    <>
+      <div className="records-list">
+        {actionError && <p className="message-error">{actionError}</p>}
 
-              <label>Начало</label>
-              <input
-                type="time"
-                name="start_time"
-                value={editForm.start_time}
-                onChange={handleEditChange}
-              />
+        {records.map((record) => (
+          <div key={record.id} className="card">
+            {editingId === record.id ? (
+              <div className="form">
+                <div>
+                  <label htmlFor={`date-${record.id}`}>Дата</label>
+                  <input
+                    id={`date-${record.id}`}
+                    type="date"
+                    name="date"
+                    value={editForm.date}
+                    onChange={handleEditChange}
+                  />
+                </div>
 
-              <label>Конец</label>
-              <input
-                type="time"
-                name="end_time"
-                value={editForm.end_time}
-                onChange={handleEditChange}
-              />
+                <div>
+                  <label htmlFor={`start_time-${record.id}`}>Начало</label>
+                  <input
+                    id={`start_time-${record.id}`}
+                    type="time"
+                    name="start_time"
+                    value={editForm.start_time}
+                    onChange={handleEditChange}
+                  />
+                </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button onClick={() => handleEditSave(record.id)}>
-                  Сохранить
-                </button>
-                <button onClick={handleEditCancel}>
-                  Отмена
-                </button>
+                <div>
+                  <label htmlFor={`end_time-${record.id}`}>Конец</label>
+                  <input
+                    id={`end_time-${record.id}`}
+                    type="time"
+                    name="end_time"
+                    value={editForm.end_time}
+                    onChange={handleEditChange}
+                  />
+                </div>
+
+                <div className="record-actions">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleEditSave(record.id)}
+                  >
+                    Сохранить
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleEditCancel}
+                  >
+                    Отмена
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div>
-              <p><strong>Дата:</strong> {record.date}</p>
-              <p><strong>Начало:</strong> {record.start_time}</p>
-              <p><strong>Конец:</strong> {record.end_time}</p>
+            ) : (
+              <div>
+                <p><strong>Дата:</strong> {record.date}</p>
+                <p><strong>Начало:</strong> {record.start_time.slice(0, 5)}</p>
+                <p><strong>Конец:</strong> {record.end_time.slice(0, 5)}</p>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => handleEditClick(record)}>
-                  Редактировать
-                </button>
-                <button onClick={() => handleDelete(record.id)}>
-                  Удалить
-                </button>
+                <div className="record-actions">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => handleEditClick(record)}
+                  >
+                    Редактировать
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => openDeleteModal(record)}
+                  >
+                    Удалить
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {recordToDelete && (
+        <ConfirmModal
+          title="Подтверждение удаления"
+          message={`Вы уверены, что хотите удалить запись на ${recordToDelete.date}?`}
+          onConfirm={confirmDelete}
+          onCancel={closeDeleteModal}
+        />
+      )}
+    </>
   )
 }
 
