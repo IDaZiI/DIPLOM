@@ -10,6 +10,7 @@ function AvailabilityForm() {
 
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const today = new Date().toISOString().split('T')[0]
 
   const handleChange = (e) => {
     setFormData({
@@ -74,6 +75,7 @@ function AvailabilityForm() {
           name="date"
           value={formData.date}
           onChange={handleChange}
+          min={today}
           required
         />
       </div>

@@ -20,6 +20,7 @@ function AvailabilityList() {
   })
 
   const [recordToDelete, setRecordToDelete] = useState(null)
+  const today = new Date().toISOString().split('T')[0]
 
   const getErrorMessage = (data) => {
     if (!data) {
@@ -169,6 +170,7 @@ function AvailabilityList() {
                     name="date"
                     value={editForm.date}
                     onChange={handleEditChange}
+                    min={today}
                   />
                 </div>
 

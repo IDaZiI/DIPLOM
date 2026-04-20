@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from datetime import date
 from .models import EmployeeAvailability, User
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -51,7 +52,12 @@ class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
     def validate(self, data):
         start_time = data.get('start_time', getattr(self.instance, 'start_time', None))
         end_time = data.get('end_time', getattr(self.instance, 'end_time', None))
-        date = data.get('date', getattr(self.instance, 'date', None))
+        selected_date = data.get('date', getattr(self.instance, 'date', None))
+
+        if selected_date < date.today():
+            raise serializers.ValidationError({
+                'date': 'Нельзя указывать доступность на прошедшую дату.'
+            })
 
         if end_time <= start_time:
             raise serializers.ValidationError({
@@ -62,7 +68,7 @@ class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
 
         overlapping = EmployeeAvailability.objects.filter(
             employee=employee,
-            date=date,
+            date=selected_date,
             start_time__lt=end_time,
             end_time__gt=start_time
         )
