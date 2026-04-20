@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
 function Navbar() {
   const navigate = useNavigate()
@@ -15,8 +15,24 @@ function Navbar() {
         <div className="navbar-brand">Waiter Module</div>
 
         <div className="navbar-links">
-          <Link to="/availability" className="nav-link">Моя доступность</Link>
-          <Link to="/records" className="nav-link">Мои записи</Link>
+          <NavLink
+            to="/availability"
+            className={({ isActive }) =>
+              isActive ? 'nav-link nav-link-active' : 'nav-link'
+            }
+          >
+            Моя доступность
+          </NavLink>
+
+          <NavLink
+            to="/records"
+            className={({ isActive }) =>
+              isActive ? 'nav-link nav-link-active' : 'nav-link'
+            }
+          >
+            Мои записи
+          </NavLink>
+
           <button className="btn btn-secondary" onClick={handleLogout}>
             Выйти
           </button>

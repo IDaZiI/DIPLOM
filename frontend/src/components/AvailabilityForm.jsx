@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createAvailability } from '../api/availability'
 
 function AvailabilityForm() {
@@ -10,7 +10,44 @@ function AvailabilityForm() {
 
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [showMessage, setShowMessage] = useState(false)
+  const [showError, setShowError] = useState(false)
+
   const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    if (!message) return
+
+    const hideTimer = setTimeout(() => {
+      setShowMessage(false)
+    }, 2500)
+
+    const removeTimer = setTimeout(() => {
+      setMessage('')
+    }, 2800)
+
+    return () => {
+      clearTimeout(hideTimer)
+      clearTimeout(removeTimer)
+    }
+  }, [message])
+
+  useEffect(() => {
+    if (!error) return
+
+    const hideTimer = setTimeout(() => {
+      setShowError(false)
+    }, 3500)
+
+    const removeTimer = setTimeout(() => {
+      setError('')
+    }, 3800)
+
+    return () => {
+      clearTimeout(hideTimer)
+      clearTimeout(removeTimer)
+    }
+  }, [error])
 
   const handleChange = (e) => {
     setFormData({
@@ -48,10 +85,13 @@ function AvailabilityForm() {
     e.preventDefault()
     setMessage('')
     setError('')
+    setShowMessage(false)
+    setShowError(false)
 
     try {
       await createAvailability(formData)
 
+      setShowMessage(true)
       setMessage('Запись успешно сохранена.')
       setFormData({
         date: '',
@@ -61,6 +101,7 @@ function AvailabilityForm() {
     } catch (err) {
       console.error('Ошибка при сохранении:', err)
       const serverData = err.response?.data
+      setShowError(true)
       setError(getErrorMessage(serverData))
     }
   }
@@ -108,8 +149,17 @@ function AvailabilityForm() {
         Сохранить
       </button>
 
-      {message && <p className="message-success">{message}</p>}
-      {error && <p className="message-error">{error}</p>}
+      {message && (
+        <div className={`alert alert-success ${!showMessage ? 'alert-hide' : ''}`}>
+          {message}
+        </div>
+      )}
+
+      {error && (
+        <div className={`alert alert-error ${!showError ? 'alert-hide' : ''}`}>
+          {error}
+        </div>
+      )}
     </form>
   )
 }

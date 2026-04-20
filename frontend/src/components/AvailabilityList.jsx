@@ -10,7 +10,9 @@ function AvailabilityList() {
   const [records, setRecords] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+
   const [actionError, setActionError] = useState('')
+  const [showActionError, setShowActionError] = useState(false)
 
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({
@@ -48,6 +50,23 @@ function AvailabilityList() {
   }
 
   useEffect(() => {
+    if (!actionError) return
+
+    const hideTimer = setTimeout(() => {
+      setShowActionError(false)
+    }, 3500)
+
+    const removeTimer = setTimeout(() => {
+      setActionError('')
+    }, 3800)
+
+    return () => {
+      clearTimeout(hideTimer)
+      clearTimeout(removeTimer)
+    }
+  }, [actionError])
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await getAvailabilities()
@@ -65,6 +84,7 @@ function AvailabilityList() {
 
   const openDeleteModal = (record) => {
     setActionError('')
+    setShowActionError(false)
     setRecordToDelete(record)
   }
 
@@ -78,6 +98,7 @@ function AvailabilityList() {
     }
 
     setActionError('')
+    setShowActionError(false)
 
     try {
       await deleteAvailability(recordToDelete.id)
@@ -85,6 +106,7 @@ function AvailabilityList() {
       setRecordToDelete(null)
     } catch (err) {
       console.error('Ошибка при удалении записи:', err)
+      setShowActionError(true)
       setActionError(getErrorMessage(err.response?.data))
       setRecordToDelete(null)
     }
@@ -92,6 +114,7 @@ function AvailabilityList() {
 
   const handleEditClick = (record) => {
     setActionError('')
+    setShowActionError(false)
     setEditingId(record.id)
     setEditForm({
       date: record.date,
@@ -109,6 +132,7 @@ function AvailabilityList() {
 
   const handleEditSave = async (id) => {
     setActionError('')
+    setShowActionError(false)
 
     try {
       const response = await updateAvailability(id, editForm)
@@ -127,12 +151,14 @@ function AvailabilityList() {
       })
     } catch (err) {
       console.error('Ошибка при редактировании записи:', err)
+      setShowActionError(true)
       setActionError(getErrorMessage(err.response?.data))
     }
   }
 
   const handleEditCancel = () => {
     setActionError('')
+    setShowActionError(false)
     setEditingId(null)
     setEditForm({
       date: '',
@@ -146,18 +172,24 @@ function AvailabilityList() {
   }
 
   if (error) {
-    return <p className="message-error">{error}</p>
+    return <div className="alert alert-error">{error}</div>
   }
 
   if (records.length === 0) {
-    return <div className="card">Записей пока нет.</div>
+    return (
+      <div className="card empty-state">
+        <h2 className="empty-state-title">Пока нет записей</h2>
+        <p className="empty-state-text">
+          У вас ещё нет сохранённых интервалов доступности. Добавьте первую запись
+          на странице «Моя доступность».
+        </p>
+      </div>
+    )
   }
 
   return (
     <>
       <div className="records-list">
-        {actionError && <p className="message-error">{actionError}</p>}
-
         {records.map((record) => (
           <div key={record.id} className="card">
             {editingId === record.id ? (
@@ -210,12 +242,21 @@ function AvailabilityList() {
                     Отмена
                   </button>
                 </div>
+
+                {actionError && (
+                  <div className={`alert alert-error ${!showActionError ? 'alert-hide' : ''}`}>
+                    {actionError}
+                  </div>
+                )}
               </div>
             ) : (
               <div>
-                <p><strong>Дата:</strong> {record.date}</p>
-                <p><strong>Начало:</strong> {record.start_time.slice(0, 5)}</p>
-                <p><strong>Конец:</strong> {record.end_time.slice(0, 5)}</p>
+                <div className="record-meta">
+                  <h3 className="record-date">{record.date}</h3>
+                  <p className="record-time">
+                    Время: {record.start_time.slice(0, 5)} — {record.end_time.slice(0, 5)}
+                  </p>
+                </div>
 
                 <div className="record-actions">
                   <button
