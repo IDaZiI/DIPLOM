@@ -28,7 +28,7 @@ function AuthPage() {
       localStorage.setItem('access', response.data.access)
       localStorage.setItem('refresh', response.data.refresh)
 
-      navigate('/dashboard')
+      navigate('/availability')
     } catch (err) {
       console.error('Ошибка входа:', err)
       setError('Неверный логин или пароль.')

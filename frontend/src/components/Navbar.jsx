@@ -15,7 +15,6 @@ function Navbar() {
         <div className="navbar-brand">Waiter Module</div>
 
         <div className="navbar-links">
-          <Link to="/dashboard" className="nav-link">Главная</Link>
           <Link to="/availability" className="nav-link">Моя доступность</Link>
           <Link to="/records" className="nav-link">Мои записи</Link>
           <button className="btn btn-secondary" onClick={handleLogout}>

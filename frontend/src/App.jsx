@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import AuthPage from './pages/AuthPage'
-import DashboardPage from './pages/DashboardPage'
 import AvailabilityPage from './pages/AvailabilityPage'
 import RecordsPage from './pages/RecordsPage'
 import Layout from './components/Layout'
@@ -10,7 +9,7 @@ import PublicRoute from './components/PublicRoute'
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/" element={<Navigate to="/availability" replace />} />
 
       <Route
         path="/auth"
@@ -20,17 +19,6 @@ function App() {
           </PublicRoute>
         }
       />
-
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<DashboardPage />} />
-      </Route>
 
       <Route
         path="/availability"
