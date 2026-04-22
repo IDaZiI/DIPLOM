@@ -1,16 +1,14 @@
-import AvailabilityForm from '../components/AvailabilityForm'
+import WeeklyCalendar from '../components/WeeklyCalendar'
 
 function AvailabilityPage() {
   return (
     <div>
       <h1 className="page-title">Моя доступность</h1>
       <p className="page-subtitle">
-        Укажите дату и время, когда вы можете работать.
+        Выберите день и временной интервал в недельном календаре, чтобы указать доступность.
       </p>
 
-      <div className="card form-card">
-        <AvailabilityForm />
-      </div>
+      <WeeklyCalendar />
     </div>
   )
 }
