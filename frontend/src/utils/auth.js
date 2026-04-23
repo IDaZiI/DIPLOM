@@ -19,3 +19,13 @@ export function clearTokens() {
 export function isAuthenticated() {
   return Boolean(getAccessToken())
 }
+
+export const getUserRole = () => {
+  return localStorage.getItem('role')
+}
+
+export const logoutUser = () => {
+  localStorage.removeItem('access')
+  localStorage.removeItem('refresh')
+  localStorage.removeItem('role')
+}

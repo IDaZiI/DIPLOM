@@ -26,9 +26,18 @@ function AuthPage() {
     try {
       const response = await loginUser(formData)
 
-      setTokens(response.data.access, response.data.refresh)
+      const { access, refresh, role } = response.data
 
-      navigate('/availability')
+      setTokens(access, refresh)
+      localStorage.setItem('role', role)
+
+      if (role === 'admin') {
+        navigate('/admin/tables')
+      } else if (role === 'waiter') {
+        navigate('/availability')
+      } else {
+        navigate('/booking')
+      }
     } catch (err) {
       console.error('Ошибка входа:', err)
       setError('Неверный логин или пароль.')

@@ -1,0 +1,312 @@
+.admin-tables-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-page-header h1 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  color: #1f2a37;
+}
+
+.admin-top-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(700px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+.admin-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #1f2a37;
+}
+
+.table-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.table-form h2 {
+  grid-column: 1 / -1;
+}
+
+.table-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.table-form-row.full {
+  grid-column: 1 / -1;
+}
+
+.table-form label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-form input,
+.table-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  background: #fff;
+  min-height: 44px;
+}
+
+.table-form-checkbox {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.table-form-checkbox input {
+  width: auto;
+  min-height: auto;
+}
+
+.table-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.admin-btn,
+.table-list-btn,
+.hall-table,
+.logout-btn {
+  font: inherit;
+}
+
+.admin-btn,
+.table-list-btn,
+.logout-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.admin-btn.primary,
+.logout-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.admin-btn.primary:hover,
+.logout-btn:hover {
+  background: #1d4ed8;
+}
+
+.admin-btn.secondary {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.admin-btn.secondary:hover {
+  background: #d1d5db;
+}
+
+.table-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.table-list-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 18px;
+}
+
+.table-list-card p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.table-list-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.table-list-btn.edit {
+  background: #2563eb;
+  color: white;
+}
+
+.table-list-btn.edit:hover {
+  background: #1d4ed8;
+}
+
+.table-list-btn.delete {
+  background: #ef4444;
+  color: white;
+}
+
+.table-list-btn.delete:hover {
+  background: #dc2626;
+}
+
+.hall-map-wrapper {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+  min-height: 100%;
+}
+
+.hall-map-wrapper h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+.hall-map {
+  position: relative;
+  width: 100%;
+  min-height: 620px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  background:
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-color: #f8fafc;
+  overflow: hidden;
+}
+
+.hall-map::after {
+  content: 'Кликните по пустой области, чтобы выбрать позицию нового столика';
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  font-size: 12px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.hall-table {
+  position: absolute;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: grab;
+  user-select: none;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hall-table:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.3);
+}
+
+.hall-table.round {
+  border-radius: 999px;
+}
+
+.hall-table.square,
+.hall-table.rect {
+  border-radius: 14px;
+}
+
+.hall-table.inactive {
+  background: #94a3b8;
+  box-shadow: 0 6px 16px rgba(100, 116, 139, 0.2);
+}
+
+.hall-table.dragging {
+  opacity: 0.85;
+  cursor: grabbing;
+  transform: scale(1.03);
+}
+
+.hall-table-number {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hall-table-capacity {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.95;
+}
+
+.admin-message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.admin-message.error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.admin-message.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+@media (max-width: 960px) {
+  .admin-top-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-form {
+    grid-template-columns: 1fr;
+  }
+
+  .table-form h2,
+  .table-form-actions,
+  .table-form-checkbox {
+    grid-column: 1;
+  }
+
+  .hall-map {
+    min-height: 420px;
+  }
+}

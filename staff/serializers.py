@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from datetime import date
 from .models import EmployeeAvailability, User
 
@@ -81,4 +82,19 @@ class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
                 'У вас уже есть пересекающийся интервал доступности на эту дату.'
             )
 
+        return data
+    
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role
+        token['username'] = user.username
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['role'] = self.user.role
+        data['username'] = self.user.username
         return data
