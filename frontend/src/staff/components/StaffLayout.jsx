@@ -1,32 +1,15 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { logoutUser } from '../../utils/auth'
+import { Outlet } from 'react-router-dom'
+import StaffNavbar from './StaffNavbar'
 
-function Layout() {
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logoutUser()
-    navigate('/auth')
-  }
-
+function StaffLayout() {
   return (
-    <div className="app-layout">
-      <header className="app-header">
-        <nav className="app-nav">
-          <NavLink to="/availability">Доступность</NavLink>
-          <NavLink to="/records">Записи</NavLink>
-        </nav>
-
-        <button type="button" onClick={handleLogout}>
-          Выйти
-        </button>
-      </header>
-
-      <main>
+    <div>
+      <StaffNavbar />
+      <main className="page-container">
         <Outlet />
       </main>
     </div>
   )
 }
 
-export default Layout
+export default StaffLayout

@@ -1,3 +1,5 @@
+import '../../shared/styles/content-blocks.css'
+import "./RecordsPage.css"
 import AvailabilityList from '../components/AvailabilityList'
 
 function RecordsPage() {

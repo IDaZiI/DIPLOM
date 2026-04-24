@@ -1,3 +1,4 @@
+import "./WeeklyCalendar.css"
 import { useEffect, useMemo, useState } from 'react'
 import { getAvailabilities } from '../../api/availability'
 import {

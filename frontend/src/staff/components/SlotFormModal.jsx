@@ -1,3 +1,4 @@
+import './SlotFormModal.css'
 import { useMemo, useState } from 'react'
 import { createAvailability } from '../../api/availability'
 import { formatDate } from '../../utils/formatDate'

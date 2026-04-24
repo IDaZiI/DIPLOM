@@ -1,3 +1,4 @@
+import '../../shared/styles/content-blocks.css'
 import WeeklyCalendar from '../components/WeeklyCalendar'
 
 function AvailabilityPage() {

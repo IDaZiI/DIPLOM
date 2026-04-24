@@ -1,0 +1,70 @@
+.slot-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #fff;
+  font: inherit;
+}
+
+.slot-select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.slot-modal {
+  max-width: 520px;
+}
+
+.slot-form {
+  margin-top: 20px;
+}
+
+.slot-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.slot-modal-actions {
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .slot-time-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+@media (max-width: 640px) {
+  .slot-modal {
+    width: 100%;
+    max-width: none;
+    margin: 0 12px;
+    padding: 20px;
+  }
+
+  .slot-time-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .slot-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .slot-modal-right-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .slot-modal-actions .btn,
+  .slot-modal-right-actions .btn {
+    width: 100%;
+  }
+}

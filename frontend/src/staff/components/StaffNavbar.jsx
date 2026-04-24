@@ -1,18 +1,19 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { clearTokens } from '../../utils/auth'
+import { logoutUser } from '../../utils/auth'
+import '../../shared/styles/navbar.css'
 
-function Navbar() {
+function StaffNavbar() {
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    clearTokens()
+    logoutUser()
     navigate('/auth')
   }
 
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <div className="navbar-brand">Waiter Module</div>
+        <div className="navbar-brand">Модуль официанта</div>
 
         <div className="navbar-links">
           <NavLink
@@ -21,7 +22,7 @@ function Navbar() {
               isActive ? 'nav-link nav-link-active' : 'nav-link'
             }
           >
-            Моя доступность
+            Доступность
           </NavLink>
 
           <NavLink
@@ -30,7 +31,7 @@ function Navbar() {
               isActive ? 'nav-link nav-link-active' : 'nav-link'
             }
           >
-            Мои записи
+            Записи
           </NavLink>
 
           <button className="btn btn-secondary" onClick={handleLogout}>
@@ -42,4 +43,4 @@ function Navbar() {
   )
 }
 
-export default Navbar
+export default StaffNavbar

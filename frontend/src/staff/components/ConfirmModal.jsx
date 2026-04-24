@@ -1,3 +1,4 @@
+import "./ConfirmModal.css"
 import { useEffect } from 'react'
 
 function ConfirmModal({ title, message, onConfirm, onCancel, isLoading = false }) {

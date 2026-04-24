@@ -5,7 +5,7 @@ import RecordsPage from './staff/pages/RecordsPage'
 import BookingPage from './booking/pages/BookingPage'
 import AdminTablesPage from './admin/pages/AdminTablesPage'
 import AdminSettingsPage from './admin/pages/AdminSettingsPage'
-import Layout from './staff/components/StaffLayout'
+import StaffLayout from './staff/components/StaffLayout'
 import ProtectedRoute from './shared/components/ProtectedRoute'
 import PublicRoute from './shared/components/PublicRoute'
 
@@ -26,25 +26,14 @@ function App() {
       <Route path="/booking" element={<BookingPage />} />
 
       <Route
-        path="/availability"
         element={
           <ProtectedRoute allowedRoles={['waiter']}>
-            <Layout />
+            <StaffLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<AvailabilityPage />} />
-      </Route>
-
-      <Route
-        path="/records"
-        element={
-          <ProtectedRoute allowedRoles={['waiter']}>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<RecordsPage />} />
+        <Route path="/availability" element={<AvailabilityPage />} />
+        <Route path="/records" element={<RecordsPage />} />
       </Route>
 
       <Route
