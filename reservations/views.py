@@ -1,11 +1,29 @@
-from django.db.models import Q
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
 
-from .models import RestaurantTable, Reservation
-from .serializers import RestaurantTableSerializer, ReservationSerializer
+from .models import RestaurantTable, Reservation, TableFeature
+from .serializers import (
+    RestaurantTableSerializer,
+    ReservationSerializer,
+    TableFeatureSerializer,
+)
 from .permissions import IsAdminUserRole
+
+
+class TableFeatureListView(generics.ListCreateAPIView):
+    queryset = TableFeature.objects.all()
+    serializer_class = TableFeatureSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUserRole()]
+        return [AllowAny()]
+
+
+class TableFeatureDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TableFeature.objects.all()
+    serializer_class = TableFeatureSerializer
+    permission_classes = [IsAdminUserRole]
 
 
 class TableListCreateView(generics.ListCreateAPIView):
@@ -33,11 +51,15 @@ class AvailableTablesView(generics.ListAPIView):
         start_time = self.request.query_params.get('start_time')
         end_time = self.request.query_params.get('end_time')
         guest_count = self.request.query_params.get('guest_count')
+        feature_id = self.request.query_params.get('feature')
 
         queryset = RestaurantTable.objects.filter(is_active=True)
 
         if guest_count:
             queryset = queryset.filter(capacity__gte=guest_count)
+
+        if feature_id:
+            queryset = queryset.filter(features__id=feature_id)
 
         if date and start_time and end_time:
             busy_tables = Reservation.objects.filter(
@@ -49,7 +71,7 @@ class AvailableTablesView(generics.ListAPIView):
 
             queryset = queryset.exclude(id__in=busy_tables)
 
-        return queryset.order_by('number')
+        return queryset.distinct().order_by('number')
 
 
 class ReservationCreateView(generics.CreateAPIView):

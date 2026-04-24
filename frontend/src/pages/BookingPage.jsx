@@ -1,21 +1,36 @@
-import './BookingPage.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BookingSearchForm from '../components/booking/BookingSearchForm'
 import AvailableTablesList from '../components/booking/AvailableTablesList'
 import ReservationForm from '../components/booking/ReservationForm'
 import {
   getAvailableTables,
   createReservation,
+  getTableFeatures,
 } from '../api/reservations'
+import './BookingPage.css'
 
 export default function BookingPage() {
   const [searchData, setSearchData] = useState(null)
   const [tables, setTables] = useState([])
+  const [features, setFeatures] = useState([])
   const [selectedTable, setSelectedTable] = useState(null)
   const [loading, setLoading] = useState(false)
   const [reservationLoading, setReservationLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+
+  useEffect(() => {
+    const loadFeatures = async () => {
+      try {
+        const data = await getTableFeatures()
+        setFeatures(data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    loadFeatures()
+  }, [])
 
   const handleSearch = async (formData) => {
     setLoading(true)
@@ -64,7 +79,11 @@ export default function BookingPage() {
     <div className="booking-page">
       <h1>Бронирование столика</h1>
 
-      <BookingSearchForm onSearch={handleSearch} loading={loading} />
+      <BookingSearchForm
+        onSearch={handleSearch}
+        loading={loading}
+        features={features}
+      />
 
       {error && <p className="booking-message error">{error}</p>}
       {successMessage && <p className="booking-message success">{successMessage}</p>}
@@ -88,6 +107,19 @@ export default function BookingPage() {
           <p><strong>Дата:</strong> {searchData.date}</p>
           <p><strong>Время:</strong> {searchData.start_time} - {searchData.end_time}</p>
           <p><strong>Гостей:</strong> {searchData.guest_count}</p>
+
+          {selectedTable.features_details?.length > 0 && (
+            <div className="selected-table-features">
+              <strong>Особенности:</strong>
+              <div className="feature-tags">
+                {selectedTable.features_details.map((feature) => (
+                  <span key={feature.id} className="feature-tag">
+                    {feature.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <ReservationForm
             selectedTable={selectedTable}

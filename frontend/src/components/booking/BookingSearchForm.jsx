@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
-export default function BookingSearchForm({ onSearch, loading }) {
+export default function BookingSearchForm({ onSearch, loading, features = [] }) {
   const [formData, setFormData] = useState({
     date: '',
     start_time: '',
     end_time: '',
     guest_count: 1,
+    feature: '',
   })
 
   const handleChange = (e) => {
@@ -18,7 +19,16 @@ export default function BookingSearchForm({ onSearch, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSearch(formData)
+
+    const preparedData = {
+      ...formData,
+    }
+
+    if (!preparedData.feature) {
+      delete preparedData.feature
+    }
+
+    onSearch(preparedData)
   }
 
   return (
@@ -70,6 +80,23 @@ export default function BookingSearchForm({ onSearch, loading }) {
           onChange={handleChange}
           required
         />
+      </div>
+
+      <div>
+        <label htmlFor="feature">Пожелание к столику</label>
+        <select
+          id="feature"
+          name="feature"
+          value={formData.feature}
+          onChange={handleChange}
+        >
+          <option value="">Без пожеланий</option>
+          {features.map((feature) => (
+            <option key={feature.id} value={feature.id}>
+              {feature.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <button type="submit" disabled={loading}>

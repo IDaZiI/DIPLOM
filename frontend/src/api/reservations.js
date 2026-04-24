@@ -48,3 +48,27 @@ export const deleteTable = async (id) => {
   const response = await axios.delete(`${API_URL}tables/${id}/`, getAuthConfig())
   return response.data
 }
+
+export const getTableFeatures = async () => {
+  const response = await axios.get(`${API_URL}table-features/`)
+  return response.data
+}
+
+export const createTableFeature = async (data) => {
+  const response = await axios.post(`${API_URL}table-features/`, data, getAuthConfig())
+  return response.data
+}
+
+export const updateTableFeature = async (id, data) => {
+  const response = await axios.patch(
+    `${API_URL}table-features/${id}/`,
+    data,
+    getAuthConfig()
+  )
+  return response.data
+}
+
+export const deleteTableFeature = async (id) => {
+  const response = await axios.delete(`${API_URL}table-features/${id}/`, getAuthConfig())
+  return response.data
+}

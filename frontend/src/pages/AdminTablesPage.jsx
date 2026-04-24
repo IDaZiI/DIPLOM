@@ -5,11 +5,13 @@ import TablesList from '../components/tables/TablesList'
 import HallMap from '../components/tables/HallMap'
 import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../utils/auth'
+
 import {
   getTables,
   createTable,
   updateTable,
   deleteTable,
+  getTableFeatures,
 } from '../api/reservations'
 
 export default function AdminTablesPage() {
@@ -21,6 +23,7 @@ export default function AdminTablesPage() {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const navigate = useNavigate()
+  const [features, setFeatures] = useState([])
 
   const handleLogout = () => {
     logoutUser()
@@ -46,19 +49,24 @@ export default function AdminTablesPage() {
   }
 
   useEffect(() => {
-    const fetchTables = async () => {
+    const fetchInitialData = async () => {
       try {
-        const data = await getTables()
-        setTables(data)
+        const [tablesData, featuresData] = await Promise.all([
+          getTables(),
+          getTableFeatures(),
+        ])
+
+        setTables(tablesData)
+        setFeatures(featuresData)
       } catch (err) {
         console.error(err)
-        setError('Не удалось загрузить список столиков.')
+        setError('Не удалось загрузить данные страницы.')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTables()
+    fetchInitialData()
   }, [])
 
   const handleSubmit = async (formData) => {
@@ -202,6 +210,7 @@ return (
           }
           selectedTable={selectedTable}
           presetPosition={presetPosition}
+          features={features}
           onSubmit={handleSubmit}
           onCancelEdit={handleCancelEdit}
           loading={formLoading}

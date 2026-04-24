@@ -3,6 +3,7 @@ import AuthPage from './pages/AuthPage'
 import AvailabilityPage from './pages/AvailabilityPage'
 import RecordsPage from './pages/RecordsPage'
 import BookingPage from './pages/BookingPage'
+import AdminSettingsPage from './pages/AdminSettingsPage'
 import AdminTablesPage from './pages/AdminTablesPage'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -56,6 +57,15 @@ function App() {
       />
 
       <Route path="*" element={<Navigate to="/booking" replace />} />
+
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSettingsPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   )
 }

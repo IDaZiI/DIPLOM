@@ -27,6 +27,21 @@ export default function TablesList({ tables, onEdit, onDelete }) {
           <p><strong>Размер:</strong> {table.width} × {table.height}</p>
           <p><strong>Статус:</strong> {table.is_active ? 'Активен' : 'Неактивен'}</p>
 
+          <div className="table-features-preview">
+            <strong>Характеристики:</strong>
+            {table.features_details?.length ? (
+              <div className="feature-tags">
+                {table.features_details.map((feature) => (
+                  <span key={feature.id} className="feature-tag">
+                    {feature.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="feature-empty-inline"> не указаны</span>
+            )}
+          </div>
+
           <div className="table-list-actions">
             <button
               type="button"

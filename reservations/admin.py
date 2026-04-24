@@ -1,12 +1,19 @@
 from django.contrib import admin
-from .models import RestaurantTable, Reservation
+from .models import RestaurantTable, Reservation, TableFeature
+
+
+@admin.register(TableFeature)
+class TableFeatureAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name', 'slug')
 
 
 @admin.register(RestaurantTable)
 class RestaurantTableAdmin(admin.ModelAdmin):
     list_display = ('number', 'capacity', 'shape', 'zone', 'is_active')
-    list_filter = ('shape', 'zone', 'is_active')
+    list_filter = ('shape', 'zone', 'is_active', 'features')
     search_fields = ('number',)
+    filter_horizontal = ('features',)
 
 
 @admin.register(Reservation)

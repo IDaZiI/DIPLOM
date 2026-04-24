@@ -12,6 +12,7 @@ const getInitialFormState = (selectedTable, presetPosition) => {
       height: selectedTable.height,
       zone: selectedTable.zone,
       is_active: selectedTable.is_active,
+      features: selectedTable.features || [],
     }
   }
 
@@ -25,12 +26,14 @@ const getInitialFormState = (selectedTable, presetPosition) => {
     height: 80,
     zone: 'main',
     is_active: true,
+    features: [],
   }
 }
 
 export default function TableForm({
   selectedTable,
   presetPosition,
+  features = [],
   onSubmit,
   onCancelEdit,
   loading,
@@ -48,6 +51,19 @@ export default function TableForm({
     }))
   }
 
+  const handleFeatureChange = (featureId) => {
+    setFormData((current) => {
+      const alreadySelected = current.features.includes(featureId)
+
+      return {
+        ...current,
+        features: alreadySelected
+          ? current.features.filter((id) => id !== featureId)
+          : [...current.features, featureId],
+      }
+    })
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -59,6 +75,7 @@ export default function TableForm({
       y: Number(formData.y),
       width: Number(formData.width),
       height: Number(formData.height),
+      features: formData.features,
     })
   }
 
@@ -164,6 +181,26 @@ export default function TableForm({
           onChange={handleChange}
           required
         />
+      </div>
+
+      <div className="table-form-row full">
+        <label>Характеристики столика</label>
+        <div className="feature-list">
+          {features.length ? (
+            features.map((feature) => (
+              <label key={feature.id} className="feature-item">
+                <input
+                  type="checkbox"
+                  checked={formData.features.includes(feature.id)}
+                  onChange={() => handleFeatureChange(feature.id)}
+                />
+                {feature.name}
+              </label>
+            ))
+          ) : (
+            <p className="feature-empty">Характеристики пока не добавлены.</p>
+          )}
+        </div>
       </div>
 
       <label htmlFor="is_active" className="table-form-checkbox">

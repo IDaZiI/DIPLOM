@@ -15,6 +15,19 @@ export default function AvailableTablesList({ tables, onSelectTable }) {
             <p><strong>Форма:</strong> {table.shape}</p>
             <p><strong>Зона:</strong> {table.zone}</p>
 
+            {table.features_details?.length > 0 && (
+              <div className="table-features-preview">
+                <strong>Особенности:</strong>
+                <div className="feature-tags">
+                  {table.features_details.map((feature) => (
+                    <span key={feature.id} className="feature-tag">
+                      {feature.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button onClick={() => onSelectTable(table)}>
               Выбрать
             </button>
