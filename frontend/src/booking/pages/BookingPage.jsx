@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import BookingSearchForm from '../components/booking/BookingSearchForm'
-import AvailableTablesList from '../components/booking/AvailableTablesList'
-import ReservationForm from '../components/booking/ReservationForm'
+import BookingSearchForm from '../components/BookingSearchForm'
+import AvailableTablesList from '../components/AvailableTablesList'
+import ReservationForm from '../components/ReservationForm'
 import {
   getAvailableTables,
   createReservation,
   getTableFeatures,
-} from '../api/reservations'
+} from '../../api/reservations'
 import './BookingPage.css'
 
 export default function BookingPage() {

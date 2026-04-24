@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { logoutUser } from '../utils/auth'
+import { logoutUser } from '../../utils/auth'
 import {
   getTableFeatures,
   createTableFeature,
   updateTableFeature,
   deleteTableFeature,
-} from '../api/reservations'
+} from '../../api/reservations'
 import './AdminSettingsPage.css'
 
 export default function AdminSettingsPage() {

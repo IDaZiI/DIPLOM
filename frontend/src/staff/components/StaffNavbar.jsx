@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { clearTokens } from '../utils/auth'
+import { clearTokens } from '../../utils/auth'
 
 function Navbar() {
   const navigate = useNavigate()

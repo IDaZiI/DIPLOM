@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import AuthPage from './pages/AuthPage'
-import AvailabilityPage from './pages/AvailabilityPage'
-import RecordsPage from './pages/RecordsPage'
-import BookingPage from './pages/BookingPage'
-import AdminSettingsPage from './pages/AdminSettingsPage'
-import AdminTablesPage from './pages/AdminTablesPage'
-import Layout from './components/Layout'
-import ProtectedRoute from './components/ProtectedRoute'
-import PublicRoute from './components/PublicRoute'
+import AuthPage from './auth/pages/AuthPage'
+import AvailabilityPage from './staff/pages/AvailabilityPage'
+import RecordsPage from './staff/pages/RecordsPage'
+import BookingPage from './booking/pages/BookingPage'
+import AdminTablesPage from './admin/pages/AdminTablesPage'
+import AdminSettingsPage from './admin/pages/AdminSettingsPage'
+import Layout from './staff/components/StaffLayout'
+import ProtectedRoute from './shared/components/ProtectedRoute'
+import PublicRoute from './shared/components/PublicRoute'
 
 function App() {
   return (

@@ -1,10 +1,10 @@
 import './AdminTablesPage.css'
 import { useEffect, useState } from 'react'
-import TableForm from '../components/tables/TableForm'
-import TablesList from '../components/tables/TablesList'
-import HallMap from '../components/tables/HallMap'
+import TableForm from '../components/TableForm'
+import TablesList from '../components/TablesList'
+import HallMap from '../components/HallMap'
 import { useNavigate } from 'react-router-dom'
-import { logoutUser } from '../utils/auth'
+import { logoutUser } from '../../utils/auth'
 
 import {
   getTables,
@@ -12,7 +12,7 @@ import {
   updateTable,
   deleteTable,
   getTableFeatures,
-} from '../api/reservations'
+} from '../../api/reservations'
 
 export default function AdminTablesPage() {
   const [tables, setTables] = useState([])

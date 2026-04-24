@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getAvailabilities } from '../api/availability'
+import { getAvailabilities } from '../../api/availability'
 import {
   getWeekDays,
   formatDayLabel,
@@ -7,8 +7,8 @@ import {
   toISODate,
   isPastDate,
   isToday,
-} from '../utils/calendar'
-import { formatTime } from '../utils/formatTime'
+} from '../../utils/calendar'
+import { formatTime } from '../../utils/formatTime'
 import SlotFormModal from './SlotFormModal'
 import EditSlotModal from './EditSlotModal'
 

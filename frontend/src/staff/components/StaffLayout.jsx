@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { logoutUser } from '../utils/auth'
+import { logoutUser } from '../../utils/auth'
 
 function Layout() {
   const navigate = useNavigate()

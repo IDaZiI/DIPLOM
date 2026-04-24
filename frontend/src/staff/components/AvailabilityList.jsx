@@ -3,11 +3,11 @@ import {
   getAvailabilities,
   deleteAvailability,
   updateAvailability,
-} from '../api/availability'
+} from '../../api/availability'
 import ConfirmModal from './ConfirmModal'
-import { formatDate } from '../utils/formatDate'
-import { formatTime } from '../utils/formatTime'
-import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDate } from '../../utils/formatDate'
+import { formatTime } from '../../utils/formatTime'
+import { getErrorMessage } from '../../utils/getErrorMessage'
 
 function AvailabilityList() {
   const [records, setRecords] = useState([])

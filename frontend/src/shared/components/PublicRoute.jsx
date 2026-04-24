@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { getUserRole, isAuthenticated } from '../utils/auth'
+import { getUserRole, isAuthenticated } from '../../utils/auth'
 
 function PublicRoute({ children }) {
   if (!isAuthenticated()) {

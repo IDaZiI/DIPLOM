@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react'
 import {
   updateAvailability,
   deleteAvailability,
-} from '../api/availability'
-import { formatDate } from '../utils/formatDate'
-import { getErrorMessage } from '../utils/getErrorMessage'
-import { formatTime } from '../utils/formatTime'
+} from '../../api/availability'
+import { formatDate } from '../../utils/formatDate'
+import { getErrorMessage } from '../../utils/getErrorMessage'
+import { formatTime } from '../../utils/formatTime'
 
 function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
   const [startTime, setStartTime] = useState(formatTime(record?.start_time) ?? '')

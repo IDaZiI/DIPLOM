@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { loginUser } from '../api/auth'
-import { setTokens } from '../utils/auth'
+import { loginUser } from '../../api/auth'
+import { setTokens } from '../../utils/auth'
 
 function AuthPage() {
   const [formData, setFormData] = useState({
