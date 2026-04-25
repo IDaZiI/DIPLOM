@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react'
 import TableForm from '../components/TableForm'
 import TablesList from '../components/TablesList'
 import HallMap from '../components/HallMap'
-import { useNavigate } from 'react-router-dom'
-import { logoutUser } from '../../utils/auth'
 
 import {
   getTables,
@@ -22,13 +20,7 @@ export default function AdminTablesPage() {
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  const navigate = useNavigate()
   const [features, setFeatures] = useState([])
-
-  const handleLogout = () => {
-    logoutUser()
-    navigate('/auth')
-  }
 
   const loadTables = async ({ showLoader = true } = {}) => {
     if (showLoader) {
@@ -192,9 +184,6 @@ return (
   <div className="admin-tables-page">
     <div className="admin-page-header">
       <h1>Управление столиками</h1>
-      <button type="button" className="logout-btn" onClick={handleLogout}>
-        Выйти
-      </button>
     </div>
 
     {error && <p className="admin-message error">{error}</p>}

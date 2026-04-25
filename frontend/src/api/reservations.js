@@ -72,3 +72,17 @@ export const deleteTableFeature = async (id) => {
   const response = await axios.delete(`${API_URL}table-features/${id}/`, getAuthConfig())
   return response.data
 }
+
+export const getAdminReservations = async () => {
+  const response = await axios.get(`${API_URL}admin/reservations/`, getAuthConfig())
+  return response.data
+}
+
+export const updateReservation = async (id, data) => {
+  const response = await axios.patch(
+    `${API_URL}admin/reservations/${id}/`,
+    data,
+    getAuthConfig()
+  )
+  return response.data
+}

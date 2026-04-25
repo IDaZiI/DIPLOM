@@ -1,0 +1,142 @@
+.admin-reservations-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-reservations-page h1 {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+  color: #1f2a37;
+}
+
+.reservations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.reservation-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  padding: 20px;
+}
+
+.reservation-card p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.reservation-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.reservation-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reservation-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.reservation-status.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.reservation-status.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 640px) {
+  .admin-reservations-page h1 {
+    font-size: 32px;
+  }
+}
+
+.reservations-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.reservations-stats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.reservations-stat {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reservations-stat.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.reservations-stat.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.reservations-stat.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.reservations-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reservations-filter label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.reservations-filter select {
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .reservations-toolbar {
+    align-items: stretch;
+  }
+
+  .reservations-filter select {
+    min-width: 100%;
+  }
+}
+
+.reservations-toolbar-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}

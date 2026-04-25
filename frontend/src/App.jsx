@@ -8,6 +8,8 @@ import AdminSettingsPage from './admin/pages/AdminSettingsPage'
 import StaffLayout from './staff/components/StaffLayout'
 import ProtectedRoute from './shared/components/ProtectedRoute'
 import PublicRoute from './shared/components/PublicRoute'
+import AdminLayout from './admin/components/AdminLayout'
+import AdminReservationsPage from './admin/pages/AdminReservationsPage'
 
 function App() {
   return (
@@ -36,27 +38,22 @@ function App() {
         <Route path="/records" element={<RecordsPage />} />
       </Route>
 
-      <Route
-        path="/admin/tables"
-        element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminTablesPage />
-          </ProtectedRoute>
-        }
-      />
-
       <Route path="*" element={<Navigate to="/booking" replace />} />
 
       <Route
-        path="/admin/settings"
         element={
           <ProtectedRoute allowedRoles={['admin']}>
-            <AdminSettingsPage />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/admin/tables" element={<AdminTablesPage />} />
+        <Route path="/admin/settings" element={<AdminSettingsPage />} />
+         <Route path="/admin/reservations" element={<AdminReservationsPage />} />
+      </Route>
+     
     </Routes>
-  )
+    )
 }
 
 export default App
