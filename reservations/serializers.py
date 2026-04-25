@@ -1,6 +1,6 @@
 from django.utils.text import slugify
 from rest_framework import serializers
-from .models import RestaurantTable, Reservation, TableFeature
+from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
 
 def transliterate_ru(text):
     mapping = {
@@ -168,3 +168,13 @@ class ReservationSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+    
+class BookingSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingSettings
+        fields = '__all__'
+
+    def validate_online_booking_percent(self, value):
+        if value < 0 or value > 100:
+            raise serializers.ValidationError('Процент онлайн-бронирования должен быть от 0 до 100.')
+        return value

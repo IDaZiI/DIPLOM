@@ -86,3 +86,20 @@ export const updateReservation = async (id, data) => {
   )
   return response.data
 }
+
+export const getBookingSettings = async () => {
+  const response = await axios.get(
+    `${API_URL}admin/booking-settings/`,
+    getAuthConfig()
+  )
+  return response.data
+}
+
+export const updateBookingSettings = async (data) => {
+  const response = await axios.patch(
+    `${API_URL}admin/booking-settings/`,
+    data,
+    getAuthConfig()
+  )
+  return response.data
+}

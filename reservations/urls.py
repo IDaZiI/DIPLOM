@@ -8,6 +8,7 @@ from .views import (
     ReservationDetailView,
     TableFeatureListView,
     TableFeatureDetailView,
+    BookingSettingsView,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path('reservations/', ReservationCreateView.as_view(), name='reservation-create'),
     path('admin/reservations/', ReservationListView.as_view(), name='reservation-list'),
     path('admin/reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
+    path('admin/booking-settings/', BookingSettingsView.as_view(), name='booking-settings'),
 ]

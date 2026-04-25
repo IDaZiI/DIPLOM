@@ -78,3 +78,14 @@ class Reservation(models.Model):
 
     def __str__(self):
         return f"{self.client_name} - Table {self.table.number} on {self.reservation_date}"
+
+
+class BookingSettings(models.Model):
+    online_booking_enabled = models.BooleanField(default=True)
+    online_booking_percent = models.PositiveIntegerField(default=100)
+    reserved_for_walkin_count = models.PositiveIntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "Booking Settings"

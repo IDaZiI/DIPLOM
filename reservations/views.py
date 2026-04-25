@@ -1,14 +1,14 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .models import RestaurantTable, Reservation, TableFeature
+from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
 from .serializers import (
     RestaurantTableSerializer,
     ReservationSerializer,
     TableFeatureSerializer,
+    BookingSettingsSerializer,
 )
 from .permissions import IsAdminUserRole
-
 
 class TableFeatureListView(generics.ListCreateAPIView):
     queryset = TableFeature.objects.all()
@@ -71,7 +71,47 @@ class AvailableTablesView(generics.ListAPIView):
 
             queryset = queryset.exclude(id__in=busy_tables)
 
-        return queryset.distinct().order_by('number')
+        queryset = queryset.distinct().order_by('number')
+
+        settings_obj, _ = BookingSettings.objects.get_or_create(
+            pk=1,
+            defaults={
+                'online_booking_enabled': True,
+                'online_booking_percent': 100,
+                'reserved_for_walkin_count': 0,
+            }
+        )
+
+        if not settings_obj.online_booking_enabled:
+            return queryset.none()
+
+        total_active_tables = RestaurantTable.objects.filter(is_active=True).count()
+
+        if total_active_tables == 0:
+            return queryset.none()
+
+        percent_limit = (total_active_tables * settings_obj.online_booking_percent) // 100
+        reserve_limit = total_active_tables - settings_obj.reserved_for_walkin_count
+
+        allowed_online_tables = min(percent_limit, reserve_limit)
+        allowed_online_tables = max(0, allowed_online_tables)
+
+        if date and start_time and end_time:
+            online_booked_count = Reservation.objects.filter(
+                reservation_date=date,
+                status__in=['pending', 'confirmed'],
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).count()
+        else:
+            online_booked_count = 0
+
+        remaining_online_slots = max(0, allowed_online_tables - online_booked_count)
+
+        if remaining_online_slots == 0:
+            return queryset.none()
+
+        return queryset[:remaining_online_slots]
 
 
 class ReservationCreateView(generics.CreateAPIView):
@@ -90,3 +130,18 @@ class ReservationDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
     permission_classes = [IsAdminUserRole]
+
+class BookingSettingsView(generics.RetrieveUpdateAPIView):
+    serializer_class = BookingSettingsSerializer
+    permission_classes = [IsAdminUserRole]
+
+    def get_object(self):
+        settings_obj, _ = BookingSettings.objects.get_or_create(
+            pk=1,
+            defaults={
+                'online_booking_enabled': True,
+                'online_booking_percent': 100,
+                'reserved_for_walkin_count': 0,
+            }
+        )
+        return settings_obj

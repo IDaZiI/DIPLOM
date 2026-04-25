@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import RestaurantTable, Reservation, TableFeature
+from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
 
 
 @admin.register(TableFeature)
@@ -29,3 +29,7 @@ class ReservationAdmin(admin.ModelAdmin):
     )
     list_filter = ('status', 'reservation_date')
     search_fields = ('client_name', 'client_phone', 'client_email')
+
+@admin.register(BookingSettings)
+class BookingSettingsAdmin(admin.ModelAdmin):
+    list_display = ('online_booking_enabled', 'online_booking_percent', 'reserved_for_walkin_count', 'updated_at')
