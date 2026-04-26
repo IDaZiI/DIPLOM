@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
@@ -40,6 +41,16 @@ class TableDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = RestaurantTable.objects.all()
     serializer_class = RestaurantTableSerializer
     permission_classes = [IsAdminUserRole]
+
+    def perform_destroy(self, instance):
+        has_active_reservations = instance.reservations.filter(status='active').exists()
+
+        if has_active_reservations:
+            raise ValidationError(
+                'Нельзя удалить столик, для которого существуют активные бронирования.'
+            )
+
+        instance.delete()
 
 
 class AvailableTablesView(generics.ListAPIView):

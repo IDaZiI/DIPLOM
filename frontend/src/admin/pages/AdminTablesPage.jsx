@@ -114,9 +114,22 @@ export default function AdminTablesPage() {
 
       await loadTables()
     } catch (err) {
-      console.error(err)
-      setError('Не удалось удалить столик.')
-    }
+        console.error(err)
+
+        const backendError = err.response?.data
+
+        if (Array.isArray(backendError)) {
+          setError(backendError.join(' '))
+        } else if (typeof backendError === 'string') {
+          setError(backendError)
+        } else if (backendError?.detail) {
+          setError(backendError.detail)
+        } else if (backendError?.non_field_errors) {
+          setError(backendError.non_field_errors.join(' '))
+        } else {
+          setError('Не удалось удалить столик.')
+        }
+      }
   }
 
   const handleCancelEdit = () => {
