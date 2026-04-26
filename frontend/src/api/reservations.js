@@ -73,8 +73,12 @@ export const deleteTableFeature = async (id) => {
   return response.data
 }
 
-export const getAdminReservations = async () => {
-  const response = await axios.get(`${API_URL}admin/reservations/`, getAuthConfig())
+export const getAdminReservations = async (params = {}) => {
+  const response = await axios.get(`${API_URL}admin/reservations/`, {
+    ...getAuthConfig(),
+    params,
+  })
+
   return response.data
 }
 
@@ -84,6 +88,16 @@ export const updateReservation = async (id, data) => {
     data,
     getAuthConfig()
   )
+  return response.data
+}
+
+export const createAdminReservation = async (data) => {
+  const response = await axios.post(
+    `${API_URL}admin/reservations/`,
+    data,
+    getAuthConfig()
+  )
+
   return response.data
 }
 

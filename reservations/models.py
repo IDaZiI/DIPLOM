@@ -49,9 +49,8 @@ class RestaurantTable(models.Model):
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('cancelled', 'Cancelled'),
+        ('active', 'Активна'),
+        ('cancelled', 'Отменено'),
     ]
 
     table = models.ForeignKey(
@@ -70,7 +69,7 @@ class Reservation(models.Model):
     end_time = models.TimeField()
 
     comment = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

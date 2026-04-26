@@ -64,7 +64,7 @@ class AvailableTablesView(generics.ListAPIView):
         if date and start_time and end_time:
             busy_tables = Reservation.objects.filter(
                 reservation_date=date,
-                status__in=['pending', 'confirmed'],
+                status='active',
                 start_time__lt=end_time,
                 end_time__gt=start_time,
             ).values_list('table_id', flat=True)
@@ -99,7 +99,7 @@ class AvailableTablesView(generics.ListAPIView):
         if date and start_time and end_time:
             online_booked_count = Reservation.objects.filter(
                 reservation_date=date,
-                status__in=['pending', 'confirmed'],
+                status='active',
                 start_time__lt=end_time,
                 end_time__gt=start_time,
             ).count()
@@ -120,10 +120,30 @@ class ReservationCreateView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
-class ReservationListView(generics.ListAPIView):
-    queryset = Reservation.objects.all().order_by('reservation_date', 'start_time')
+class ReservationListView(generics.ListCreateAPIView):
     serializer_class = ReservationSerializer
     permission_classes = [IsAdminUserRole]
+
+    def get_queryset(self):
+        queryset = Reservation.objects.all().order_by(
+            'reservation_date',
+            'start_time'
+        )
+
+        status = self.request.query_params.get('status')
+        date = self.request.query_params.get('date')
+        table = self.request.query_params.get('table')
+
+        if status:
+            queryset = queryset.filter(status=status)
+
+        if date:
+            queryset = queryset.filter(reservation_date=date)
+
+        if table:
+            queryset = queryset.filter(table_id=table)
+
+        return queryset
 
 
 class ReservationDetailView(generics.RetrieveUpdateDestroyAPIView):

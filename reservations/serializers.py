@@ -1,5 +1,6 @@
 from django.utils.text import slugify
 from rest_framework import serializers
+from django.utils import timezone
 from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
 
 def transliterate_ru(text):
@@ -127,6 +128,7 @@ class RestaurantTableSerializer(serializers.ModelSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
+    table_details = RestaurantTableSerializer(source='table', read_only=True)
     class Meta:
         model = Reservation
         fields = '__all__'
@@ -137,6 +139,11 @@ class ReservationSerializer(serializers.ModelSerializer):
         guest_count = attrs.get('guest_count')
         table = attrs.get('table')
         reservation_date = attrs.get('reservation_date')
+
+        if reservation_date and reservation_date < timezone.localdate():
+            raise serializers.ValidationError(
+                "Reservation date cannot be in the past."
+            )
 
         if start_time and end_time and start_time >= end_time:
             raise serializers.ValidationError(
@@ -152,7 +159,7 @@ class ReservationSerializer(serializers.ModelSerializer):
             overlapping_reservations = Reservation.objects.filter(
                 table=table,
                 reservation_date=reservation_date,
-                status__in=['pending', 'confirmed'],
+                status='active',
                 start_time__lt=end_time,
                 end_time__gt=start_time,
             )
