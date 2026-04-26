@@ -168,6 +168,38 @@ export default function AdminReservationsPage() {
     }
   }
 
+const getBackendErrorMessage = (err, fallbackMessage) => {
+  const backendError = err.response?.data
+
+  if (Array.isArray(backendError)) {
+    return backendError.join(' ')
+  }
+
+  if (typeof backendError === 'string') {
+    return backendError
+  }
+
+  if (backendError?.detail) {
+    return backendError.detail
+  }
+
+  if (backendError?.non_field_errors) {
+    return backendError.non_field_errors.join(' ')
+  }
+
+  if (backendError && typeof backendError === 'object') {
+    const messages = Object.values(backendError)
+      .flat()
+      .filter(Boolean)
+
+    if (messages.length) {
+      return messages.join(' ')
+    }
+  }
+
+  return fallbackMessage
+}
+
   const handleStatusChange = async (reservation, newStatus) => {
     setUpdatingId(reservation.id)
     setError('')
@@ -176,10 +208,21 @@ export default function AdminReservationsPage() {
     try {
       await updateReservation(reservation.id, { status: newStatus })
       await loadReservations(appliedFilters, { showLoader: false })
-      setSuccessMessage('Статус бронирования обновлён.')
+
+      setSuccessMessage(
+        newStatus === 'active'
+          ? 'Бронирование восстановлено.'
+          : 'Бронирование отменено.'
+      )
     } catch (err) {
       console.error(err)
-      setError('Не удалось обновить статус бронирования.')
+
+      setError(
+        getBackendErrorMessage(
+          err,
+          'Не удалось обновить статус бронирования.'
+        )
+      )
     } finally {
       setUpdatingId(null)
     }

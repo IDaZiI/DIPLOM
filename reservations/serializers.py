@@ -134,28 +134,55 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        start_time = attrs.get('start_time')
-        end_time = attrs.get('end_time')
-        guest_count = attrs.get('guest_count')
-        table = attrs.get('table')
-        reservation_date = attrs.get('reservation_date')
+        instance = self.instance
+
+        start_time = attrs.get(
+            'start_time',
+            instance.start_time if instance else None
+        )
+        end_time = attrs.get(
+            'end_time',
+            instance.end_time if instance else None
+        )
+        guest_count = attrs.get(
+            'guest_count',
+            instance.guest_count if instance else None
+        )
+        table = attrs.get(
+            'table',
+            instance.table if instance else None
+        )
+        reservation_date = attrs.get(
+            'reservation_date',
+            instance.reservation_date if instance else None
+        )
+        status = attrs.get(
+            'status',
+            instance.status if instance else 'active'
+        )
 
         if reservation_date and reservation_date < timezone.localdate():
             raise serializers.ValidationError(
-                "Reservation date cannot be in the past."
+                'Нельзя создать или восстановить бронирование на прошедшую дату.'
             )
 
         if start_time and end_time and start_time >= end_time:
             raise serializers.ValidationError(
-                "Start time must be earlier than end time."
+                'Время начала должно быть раньше времени окончания.'
             )
 
         if table and guest_count and guest_count > table.capacity:
             raise serializers.ValidationError(
-                "Guest count exceeds table capacity."
+                'Количество гостей превышает вместимость выбранного столика.'
             )
 
-        if table and reservation_date and start_time and end_time:
+        if (
+            status == 'active'
+            and table
+            and reservation_date
+            and start_time
+            and end_time
+        ):
             overlapping_reservations = Reservation.objects.filter(
                 table=table,
                 reservation_date=reservation_date,
@@ -164,14 +191,14 @@ class ReservationSerializer(serializers.ModelSerializer):
                 end_time__gt=start_time,
             )
 
-            if self.instance:
+            if instance:
                 overlapping_reservations = overlapping_reservations.exclude(
-                    pk=self.instance.pk
+                    pk=instance.pk
                 )
 
             if overlapping_reservations.exists():
                 raise serializers.ValidationError(
-                    "This table is already reserved for the selected time."
+                    'Выбранный столик уже занят в указанный временной интервал.'
                 )
 
         return attrs
