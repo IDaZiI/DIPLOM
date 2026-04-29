@@ -1,0 +1,109 @@
+.admin-waiters-page h1 {
+  margin: 0 0 8px;
+  font-size: 40px;
+  color: #0f172a;
+}
+
+.admin-waiters-header {
+  margin-bottom: 24px;
+}
+
+.admin-waiters-header p {
+  margin: 0;
+  color: #64748b;
+  max-width: 720px;
+}
+
+.admin-waiters-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.waiter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.waiter-form h2,
+.waiters-list-card h2 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.waiter-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.waiter-form input {
+  padding: 11px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.waiter-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.waiters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.waiter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.waiter-item p {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.waiter-role {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .admin-waiters-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-waiters-page h1 {
+    font-size: 32px;
+  }
+
+  .waiter-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .waiter-role {
+    align-self: flex-start;
+  }
+}

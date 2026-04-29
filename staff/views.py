@@ -2,7 +2,12 @@ from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 from .models import EmployeeAvailability, User
-from .serializers import EmployeeAvailabilitySerializer, UserSerializer, RegisterSerializer
+from .serializers import (
+    EmployeeAvailabilitySerializer,
+    UserSerializer,
+    RegisterSerializer,
+    AdminWaiterCreateSerializer,
+)
 from .permissions import IsWaiter, IsAdminUserRole
 
 
@@ -57,12 +62,17 @@ class AdminAvailabilityListView(generics.ListAPIView):
         return queryset
 
 
-class WaiterListView(generics.ListAPIView):
-    serializer_class = UserSerializer
+class WaiterListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminUserRole]
 
     def get_queryset(self):
         return User.objects.filter(role='waiter').order_by('username')
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AdminWaiterCreateSerializer
+
+        return UserSerializer
     
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer

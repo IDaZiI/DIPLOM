@@ -4,6 +4,8 @@ import { BASE_API_URL } from '../config/api'
 
 const API_URL = `${BASE_API_URL}availabilities/`
 
+const ADMIN_WAITERS_URL = `${BASE_API_URL}admin/waiters/`
+
 const getAuthHeader = () => {
   const token = getAccessToken()
   return {
@@ -27,4 +29,12 @@ export const updateAvailability = async (id, data) => {
 
 export const deleteAvailability = async (id) => {
   return axios.delete(`${API_URL}${id}/`, getAuthHeader())
+}
+
+export const getWaiters = async () => {
+  return axios.get(ADMIN_WAITERS_URL, getAuthHeader())
+}
+
+export const createWaiter = async (data) => {
+  return axios.post(ADMIN_WAITERS_URL, data, getAuthHeader())
 }

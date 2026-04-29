@@ -43,6 +43,15 @@ function AdminNavbar() {
             Бронирования
           </NavLink>
 
+          <NavLink
+            to="/admin/waiters"
+            className={({ isActive }) =>
+              isActive ? 'nav-link nav-link-active' : 'nav-link'
+            }
+          >
+            Официанты
+          </NavLink>
+
           <button className="btn btn-secondary" onClick={handleLogout}>
             Выйти
           </button>
