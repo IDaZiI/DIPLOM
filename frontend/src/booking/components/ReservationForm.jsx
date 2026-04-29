@@ -34,7 +34,6 @@ export default function ReservationForm({
       start_time: `${searchData.start_time}:00`,
       end_time: `${searchData.end_time}:00`,
       comment: formData.comment,
-      status: 'pending',
     })
   }
 

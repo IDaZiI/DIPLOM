@@ -1,4 +1,6 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
@@ -176,3 +178,68 @@ class BookingSettingsView(generics.RetrieveUpdateAPIView):
             }
         )
         return settings_obj
+    
+
+class ClientReservationLookupView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        booking_code = request.data.get('booking_code')
+        client_phone = request.data.get('client_phone')
+
+        if not booking_code or not client_phone:
+            return Response(
+                {'detail': 'Укажите номер бронирования и номер телефона.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            reservation = Reservation.objects.get(
+                booking_code=booking_code,
+                client_phone=client_phone
+            )
+        except Reservation.DoesNotExist:
+            return Response(
+                {'detail': 'Бронирование с указанными данными не найдено.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ReservationSerializer(reservation)
+        return Response(serializer.data)
+
+
+class ClientReservationCancelView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        booking_code = request.data.get('booking_code')
+        client_phone = request.data.get('client_phone')
+
+        if not booking_code or not client_phone:
+            return Response(
+                {'detail': 'Укажите номер бронирования и номер телефона.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            reservation = Reservation.objects.get(
+                booking_code=booking_code,
+                client_phone=client_phone
+            )
+        except Reservation.DoesNotExist:
+            return Response(
+                {'detail': 'Бронирование с указанными данными не найдено.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if reservation.status == 'cancelled':
+            return Response(
+                {'detail': 'Это бронирование уже отменено.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reservation.status = 'cancelled'
+        reservation.save(update_fields=['status'])
+
+        serializer = ReservationSerializer(reservation)
+        return Response(serializer.data)

@@ -9,6 +9,8 @@ from .views import (
     TableFeatureListView,
     TableFeatureDetailView,
     BookingSettingsView,
+    ClientReservationLookupView,
+    ClientReservationCancelView,
 )
 
 urlpatterns = [
@@ -23,4 +25,7 @@ urlpatterns = [
     path('admin/reservations/', ReservationListView.as_view(), name='reservation-list'),
     path('admin/reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
     path('admin/booking-settings/', BookingSettingsView.as_view(), name='booking-settings'),
+    path('reservations/lookup/', ClientReservationLookupView.as_view(), name='client-reservation-lookup'),
+    path('reservations/cancel/', ClientReservationCancelView.as_view(), name='client-reservation-cancel'
+),
 ]

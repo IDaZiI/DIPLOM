@@ -117,3 +117,13 @@ export const updateBookingSettings = async (data) => {
   )
   return response.data
 }
+
+export const lookupReservation = async (data) => {
+  const response = await axios.post(`${API_URL}reservations/lookup/`, data)
+  return response.data
+}
+
+export const cancelClientReservation = async (data) => {
+  const response = await axios.post(`${API_URL}reservations/cancel/`, data)
+  return response.data
+}

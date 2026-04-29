@@ -10,6 +10,7 @@ import ProtectedRoute from './shared/components/ProtectedRoute'
 import PublicRoute from './shared/components/PublicRoute'
 import AdminLayout from './admin/components/AdminLayout'
 import AdminReservationsPage from './admin/pages/AdminReservationsPage'
+import MyReservationPage from './booking/pages/MyReservationPage'
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
          <Route path="/admin/reservations" element={<AdminReservationsPage />} />
       </Route>
      
+     <Route path="/my-reservation" element={<MyReservationPage />} />
     </Routes>
     )
 }

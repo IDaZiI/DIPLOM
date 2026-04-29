@@ -1,5 +1,6 @@
+import uuid
+from django.utils import timezone
 from django.db import models
-
 
 class TableFeature(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -59,6 +60,14 @@ class Reservation(models.Model):
         related_name='reservations'
     )
 
+    booking_code = models.CharField(
+        max_length=30,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name='Номер бронирования'
+    )
+
     client_name = models.CharField(max_length=100)
     client_phone = models.CharField(max_length=20)
     client_email = models.EmailField(blank=True, null=True)
@@ -75,9 +84,20 @@ class Reservation(models.Model):
     class Meta:
         ordering = ['reservation_date', 'start_time']
 
+    def generate_booking_code(self):
+        date_part = timezone.localdate().strftime('%Y%m%d')
+        random_part = uuid.uuid4().hex[:6].upper()
+        return f'R-{date_part}-{random_part}'
+
+    def save(self, *args, **kwargs):
+        if not self.booking_code:
+            self.booking_code = self.generate_booking_code()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.client_name} - Table {self.table.number} on {self.reservation_date}"
-
+    
 
 class BookingSettings(models.Model):
     online_booking_enabled = models.BooleanField(default=True)

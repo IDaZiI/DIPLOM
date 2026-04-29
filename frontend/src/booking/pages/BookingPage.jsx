@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import BookingSearchForm from '../components/BookingSearchForm'
 import AvailableTablesList from '../components/AvailableTablesList'
 import ReservationForm from '../components/ReservationForm'
@@ -9,11 +10,14 @@ import {
 } from '../../api/reservations'
 import './BookingPage.css'
 
+const formatTime = (value) => value?.slice(0, 5) || ''
+
 export default function BookingPage() {
   const [searchData, setSearchData] = useState(null)
   const [tables, setTables] = useState([])
   const [features, setFeatures] = useState([])
   const [selectedTable, setSelectedTable] = useState(null)
+  const [createdReservation, setCreatedReservation] = useState(null)
   const [loading, setLoading] = useState(false)
   const [reservationLoading, setReservationLoading] = useState(false)
   const [error, setError] = useState('')
@@ -37,6 +41,7 @@ export default function BookingPage() {
     setError('')
     setSuccessMessage('')
     setSelectedTable(null)
+    setCreatedReservation(null)
 
     try {
       const data = await getAvailableTables(formData)
@@ -55,18 +60,23 @@ export default function BookingPage() {
     setSelectedTable(table)
     setSuccessMessage('')
     setError('')
+    setCreatedReservation(null)
   }
 
   const handleReservationSubmit = async (reservationData) => {
     setReservationLoading(true)
     setError('')
     setSuccessMessage('')
+    setCreatedReservation(null)
 
     try {
-      await createReservation(reservationData)
+      const created = await createReservation(reservationData)
+
+      setCreatedReservation(created)
       setSuccessMessage('Бронирование успешно создано.')
       setSelectedTable(null)
       setTables([])
+      setSearchData(null)
     } catch (err) {
       console.error(err)
       setError('Не удалось создать бронирование.')
@@ -77,7 +87,13 @@ export default function BookingPage() {
 
   return (
     <div className="booking-page">
-      <h1>Бронирование столика</h1>
+      <div className="booking-page-header">
+        <h1>Бронирование столика</h1>
+
+        <Link to="/my-reservation" className="btn-primary booking-link-btn">
+          Найти моё бронирование
+        </Link>
+      </div>
 
       <BookingSearchForm
         onSearch={handleSearch}
@@ -86,7 +102,50 @@ export default function BookingPage() {
       />
 
       {error && <p className="booking-message error">{error}</p>}
-      {successMessage && <p className="booking-message success">{successMessage}</p>}
+
+      {createdReservation ? (
+        <div className="booking-success-card">
+          <h2>Бронирование успешно создано</h2>
+
+          <p>Ваш номер бронирования:</p>
+
+          <strong className="booking-code">
+            {createdReservation.booking_code}
+          </strong>
+
+          <div className="booking-success-details">
+            <p>
+              <strong>Дата:</strong> {createdReservation.reservation_date}
+            </p>
+
+            <p>
+              <strong>Время:</strong>{' '}
+              {formatTime(createdReservation.start_time)} – {formatTime(createdReservation.end_time)}
+            </p>
+
+            <p>
+              <strong>Количество гостей:</strong> {createdReservation.guest_count}
+            </p>
+
+            <p>
+              <strong>Статус:</strong> Активна
+            </p>
+
+            {createdReservation.table_details && (
+              <p>
+                <strong>Столик:</strong>{' '}
+                №{createdReservation.table_details.number}, {createdReservation.table_details.capacity} мест
+              </p>
+            )}
+          </div>
+
+          <p className="booking-success-note">
+            Сохраните номер бронирования. Он понадобится для просмотра или отмены бронирования.
+          </p>
+        </div>
+      ) : (
+        successMessage && <p className="booking-message success">{successMessage}</p>
+      )}
 
       {!loading && tables.length > 0 && (
         <AvailableTablesList
@@ -95,7 +154,7 @@ export default function BookingPage() {
         />
       )}
 
-      {!loading && searchData && tables.length === 0 && !error && !successMessage && (
+      {!loading && searchData && tables.length === 0 && !error && !successMessage && !createdReservation && (
         <p>Свободные столики не найдены.</p>
       )}
 

@@ -82,13 +82,13 @@ export default function BookingSearchForm({ onSearch, loading, features = [] }) 
         />
       </div>
 
-      <div>
-        <label htmlFor="feature">Пожелание к столику</label>
+      <div className="booking-select-wrapper">
         <select
           id="feature"
           name="feature"
           value={formData.feature}
           onChange={handleChange}
+          className="booking-select"
         >
           <option value="">Без пожеланий</option>
           {features.map((feature) => (
