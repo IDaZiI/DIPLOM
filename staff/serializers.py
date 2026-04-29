@@ -28,7 +28,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'role']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'role', 'is_active']
 
 class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
     employee = serializers.StringRelatedField(read_only=True)
@@ -151,3 +151,37 @@ class AdminWaiterCreateSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+    
+class AdminWaiterUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'role',
+            'is_active',
+        ]
+        read_only_fields = [
+            'id',
+            'username',
+            'role',
+        ]
+
+    def validate_email(self, value):
+        if value and User.objects.exclude(pk=self.instance.pk).filter(email=value).exists():
+            raise serializers.ValidationError(
+                'Пользователь с таким email уже существует.'
+            )
+
+        return value
+    
+    def validate(self, attrs):
+        if self.instance and self.instance.role != 'waiter':
+            raise serializers.ValidationError(
+                'Можно изменять только учётные записи официантов.'
+            )
+
+        return attrs

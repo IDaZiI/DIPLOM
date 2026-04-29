@@ -6,6 +6,7 @@ from .views import (
     CurrentUserView,
     AdminAvailabilityListView,
     WaiterListView,
+    WaiterDetailView,
 )
 
 urlpatterns = [
@@ -15,4 +16,6 @@ urlpatterns = [
     path('me/', CurrentUserView.as_view(), name='current-user'),
     path('admin/availabilities/', AdminAvailabilityListView.as_view(), name='admin-availability-list'),
     path('admin/waiters/', WaiterListView.as_view(), name='admin-waiter-list'),
+    path('admin/waiters/<int:pk>/', WaiterDetailView.as_view(), name='admin-waiter-detail'
+),
 ]

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createWaiter, getWaiters } from '../../api/availability'
+import { createWaiter, getWaiters, updateWaiter } from '../../api/availability'
 import './AdminWaitersPage.css'
 
 const initialForm = {
@@ -47,6 +47,13 @@ export default function AdminWaitersPage() {
   const [formData, setFormData] = useState(initialForm)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [updatingId, setUpdatingId] = useState(null)
+  const [editingId, setEditingId] = useState(null)
+  const [editFormData, setEditFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+  })
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -101,6 +108,107 @@ export default function AdminWaitersPage() {
       setCreating(false)
     }
   }
+
+  const handleToggleWaiterStatus = async (waiter) => {
+  const newStatus = !waiter.is_active
+
+  const confirmed = window.confirm(
+    newStatus
+      ? 'Активировать учётную запись официанта?'
+      : 'Деактивировать учётную запись официанта?'
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  setUpdatingId(waiter.id)
+  setError('')
+  setSuccessMessage('')
+
+  try {
+    await updateWaiter(waiter.id, {
+      is_active: newStatus,
+    })
+
+    setSuccessMessage(
+      newStatus
+        ? 'Учётная запись официанта активирована.'
+        : 'Учётная запись официанта деактивирована.'
+    )
+
+    await loadWaiters()
+  } catch (err) {
+    console.error(err)
+
+    setError(
+      getBackendErrorMessage(
+        err,
+        'Не удалось изменить состояние учётной записи официанта.'
+      )
+    )
+  } finally {
+    setUpdatingId(null)
+  }
+}
+
+const handleStartEdit = (waiter) => {
+  setEditingId(waiter.id)
+  setEditFormData({
+    first_name: waiter.first_name || '',
+    last_name: waiter.last_name || '',
+    email: waiter.email || '',
+  })
+  setError('')
+  setSuccessMessage('')
+}
+
+const handleCancelEdit = () => {
+  setEditingId(null)
+  setEditFormData({
+    first_name: '',
+    last_name: '',
+    email: '',
+  })
+}
+
+const handleEditFormChange = (field, value) => {
+  setEditFormData((prev) => ({
+    ...prev,
+    [field]: value,
+  }))
+}
+
+const handleSaveWaiter = async (waiter) => {
+  setUpdatingId(waiter.id)
+  setError('')
+  setSuccessMessage('')
+
+  try {
+    await updateWaiter(waiter.id, editFormData)
+
+    setSuccessMessage('Данные официанта обновлены.')
+    setEditingId(null)
+    setEditFormData({
+      first_name: '',
+      last_name: '',
+      email: '',
+    })
+
+    await loadWaiters()
+  } catch (err) {
+    console.error(err)
+
+    setError(
+      getBackendErrorMessage(
+        err,
+        'Не удалось обновить данные официанта.'
+      )
+    )
+  } finally {
+    setUpdatingId(null)
+  }
+}
 
   return (
     <div className="admin-waiters-page">
@@ -194,25 +302,110 @@ export default function AdminWaitersPage() {
             <p>Загрузка официантов...</p>
           ) : waiters.length ? (
             <div className="waiters-list">
-              {waiters.map((waiter) => (
-                <div key={waiter.id} className="waiter-item">
-                  <div>
-                    <strong>
-                      {waiter.first_name || waiter.last_name
-                        ? `${waiter.first_name} ${waiter.last_name}`.trim()
-                        : waiter.username}
-                    </strong>
+              {waiters.map((waiter) => {
+                const isEditing = editingId === waiter.id
 
-                    <p>@{waiter.username}</p>
+                return (
+                  <div key={waiter.id} className="waiter-item">
+                    {isEditing ? (
+                      <div className="waiter-edit-form">
+                        <label>
+                          Имя
+                          <input
+                            type="text"
+                            value={editFormData.first_name}
+                            onChange={(e) => handleEditFormChange('first_name', e.target.value)}
+                          />
+                        </label>
 
-                    {waiter.email && (
-                      <p>{waiter.email}</p>
+                        <label>
+                          Фамилия
+                          <input
+                            type="text"
+                            value={editFormData.last_name}
+                            onChange={(e) => handleEditFormChange('last_name', e.target.value)}
+                          />
+                        </label>
+
+                        <label>
+                          Email
+                          <input
+                            type="email"
+                            value={editFormData.email}
+                            onChange={(e) => handleEditFormChange('email', e.target.value)}
+                          />
+                        </label>
+
+                        <p className="waiter-login-hint">
+                          Логин: @{waiter.username}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <strong>
+                          {waiter.first_name || waiter.last_name
+                            ? `${waiter.first_name} ${waiter.last_name}`.trim()
+                            : waiter.username}
+                        </strong>
+
+                        <p>@{waiter.username}</p>
+
+                        {waiter.email && (
+                          <p>{waiter.email}</p>
+                        )}
+                      </div>
                     )}
-                  </div>
 
-                  <span className="waiter-role">Официант</span>
-                </div>
-              ))}
+                    <div className="waiter-actions">
+                      <span className={`waiter-status ${waiter.is_active ? 'active' : 'inactive'}`}>
+                        {waiter.is_active ? 'Активен' : 'Деактивирован'}
+                      </span>
+
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            className="admin-btn primary"
+                            onClick={() => handleSaveWaiter(waiter)}
+                            disabled={updatingId === waiter.id}
+                          >
+                            Сохранить
+                          </button>
+
+                          <button
+                            type="button"
+                            className="admin-btn secondary"
+                            onClick={handleCancelEdit}
+                            disabled={updatingId === waiter.id}
+                          >
+                            Отмена
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="admin-btn secondary"
+                            onClick={() => handleStartEdit(waiter)}
+                            disabled={updatingId === waiter.id}
+                          >
+                            Редактировать
+                          </button>
+
+                          <button
+                            type="button"
+                            className={waiter.is_active ? 'admin-btn secondary' : 'admin-btn primary'}
+                            onClick={() => handleToggleWaiterStatus(waiter)}
+                            disabled={updatingId === waiter.id}
+                          >
+                            {waiter.is_active ? 'Деактивировать' : 'Активировать'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <p>Официанты пока не добавлены.</p>

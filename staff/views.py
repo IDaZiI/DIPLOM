@@ -7,6 +7,7 @@ from .serializers import (
     UserSerializer,
     RegisterSerializer,
     AdminWaiterCreateSerializer,
+    AdminWaiterUpdateSerializer,
 )
 from .permissions import IsWaiter, IsAdminUserRole
 
@@ -73,6 +74,13 @@ class WaiterListView(generics.ListCreateAPIView):
             return AdminWaiterCreateSerializer
 
         return UserSerializer
+    
+class WaiterDetailView(generics.RetrieveUpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdminUserRole]
+    serializer_class = AdminWaiterUpdateSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(role='waiter')
     
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer

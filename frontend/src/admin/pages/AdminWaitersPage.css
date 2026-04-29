@@ -87,6 +87,67 @@
   font-size: 14px;
 }
 
+.waiter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.waiter-status {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.waiter-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.waiter-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.waiter-edit-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+
+.waiter-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.waiter-edit-form input {
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+}
+
+.waiter-edit-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.waiter-login-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #64748b;
+}
+
 @media (max-width: 900px) {
   .admin-waiters-layout {
     grid-template-columns: 1fr;
@@ -105,5 +166,9 @@
 
   .waiter-role {
     align-self: flex-start;
+  }
+
+  .waiter-actions {
+    justify-content: flex-start;
   }
 }

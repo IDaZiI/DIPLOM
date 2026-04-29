@@ -38,3 +38,7 @@ export const getWaiters = async () => {
 export const createWaiter = async (data) => {
   return axios.post(ADMIN_WAITERS_URL, data, getAuthHeader())
 }
+
+export const updateWaiter = async (id, data) => {
+  return axios.patch(`${ADMIN_WAITERS_URL}${id}/`, data, getAuthHeader())
+}
