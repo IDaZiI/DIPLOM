@@ -161,3 +161,8 @@ export const deleteHallScheme = async () => {
 
   return response.data
 }
+
+export const getPublicHallScheme = async () => {
+  const response = await axios.get(`${API_URL}hall-scheme/`)
+  return response.data
+}

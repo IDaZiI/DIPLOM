@@ -12,6 +12,7 @@ from .views import (
     ClientReservationLookupView,
     ClientReservationCancelView,
     HallSchemeView,
+    PublicHallSchemeView,
 )
 
 urlpatterns = [
@@ -29,4 +30,6 @@ urlpatterns = [
     path('reservations/lookup/', ClientReservationLookupView.as_view(), name='client-reservation-lookup'),
     path('reservations/cancel/', ClientReservationCancelView.as_view(), name='client-reservation-cancel'),
     path('admin/hall-scheme/', HallSchemeView.as_view(), name='admin-hall-scheme'),
+    path('hall-scheme/', PublicHallSchemeView.as_view(), name='public-hall-scheme'
+),
 ]

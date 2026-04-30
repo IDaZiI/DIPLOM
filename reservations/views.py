@@ -266,3 +266,11 @@ class HallSchemeView(generics.RetrieveUpdateAPIView):
             {'detail': 'Схема зала удалена.'},
             status=status.HTTP_200_OK
         )
+    
+class PublicHallSchemeView(generics.RetrieveAPIView):
+    serializer_class = HallSchemeSerializer
+    permission_classes = []
+
+    def get_object(self):
+        obj, created = HallScheme.objects.get_or_create(pk=1)
+        return obj
