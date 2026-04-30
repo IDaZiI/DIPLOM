@@ -1,43 +1,45 @@
-import "./ConfirmModal.css"
-import { useEffect } from 'react'
+import Modal from '../../shared/components/Modal'
 
-function ConfirmModal({ title, message, onConfirm, onCancel, isLoading = false }) {
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && !isLoading) {
-        onCancel()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onCancel, isLoading])
-
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget && !isLoading) {
-      onCancel()
-    }
-  }
-
+function ConfirmModal({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  isLoading = false,
+  confirmText = 'Удалить',
+  loadingText = 'Удаление...',
+  cancelText = 'Отмена',
+}) {
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal">
-        <h2 className="modal-title">{title}</h2>
-        <p className="modal-text">{message}</p>
+    <Modal
+      title={title}
+      onClose={onCancel}
+      isLoading={isLoading}
+      maxWidth={450}
+      footer={
+        <>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onCancel}
+            disabled={isLoading}
+          >
+            {cancelText}
+          </button>
 
-        <div className="modal-actions">
-          <button className="btn btn-secondary" onClick={onCancel} disabled={isLoading}>
-            Отмена
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? loadingText : confirmText}
           </button>
-          <button className="btn btn-danger" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Удаление...' : 'Удалить'}
-          </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className="modal-text">{message}</p>
+    </Modal>
   )
 }
 

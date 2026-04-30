@@ -6,6 +6,7 @@ import {
 import { formatDate } from '../../utils/formatDate'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { formatTime } from '../../utils/formatTime'
+import Modal from '../../shared/components/Modal'
 
 function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
   const [startTime, setStartTime] = useState(formatTime(record?.start_time) ?? '')
@@ -84,66 +85,16 @@ function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
     }
   }
 
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget && !isSubmitting && !isDeleting) {
-      onClose()
-    }
-  }
-
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal slot-modal">
-        <h2 className="modal-title">Редактирование записи</h2>
-        <p className="modal-text">{formatDate(record.date)}</p>
-
-        <div className="form slot-form">
-          <div>
-            <label>Дата</label>
-            <input type="text" value={formatDate(record.date)} readOnly />
-          </div>
-
-          <div className="slot-time-grid">
-            <div>
-              <label htmlFor="edit-start-time">Время начала</label>
-              <select
-                id="edit-start-time"
-                className="slot-select"
-                value={startTime}
-                onChange={handleStartTimeChange}
-                disabled={isSubmitting || isDeleting}
-              >
-                {timeSlots.map((time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="edit-end-time">Время окончания</label>
-              <select
-                id="edit-end-time"
-                className="slot-select"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                disabled={isSubmitting || isDeleting}
-              >
-                <option value="">Выберите время</option>
-                {availableEndTimes.map((time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {error && <div className="alert alert-error">{error}</div>}
-
-        <div className="modal-actions slot-modal-actions">
+    <Modal
+      title="Редактирование записи"
+      onClose={onClose}
+      isLoading={isSubmitting || isDeleting}
+      maxWidth={450}
+      footer={
+        <>
           <button
+            type="button"
             className="btn btn-danger"
             onClick={handleDelete}
             disabled={isSubmitting || isDeleting}
@@ -153,13 +104,16 @@ function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
 
           <div className="slot-modal-right-actions">
             <button
+              type="button"
               className="btn btn-secondary"
               onClick={onClose}
               disabled={isSubmitting || isDeleting}
             >
               Отмена
             </button>
+
             <button
+              type="button"
               className="btn btn-primary"
               onClick={handleSave}
               disabled={isSubmitting || isDeleting}
@@ -167,9 +121,55 @@ function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
               {isSubmitting ? 'Сохранение...' : 'Сохранить'}
             </button>
           </div>
+        </>
+      }
+    >
+      <div className="form slot-form">
+        <div>
+          <label>Дата</label>
+          <input type="text" value={formatDate(record.date)} readOnly />
+        </div>
+
+        <div className="slot-time-grid">
+          <div>
+            <label htmlFor="edit-start-time">Время начала</label>
+            <select
+              id="edit-start-time"
+              className="slot-select"
+              value={startTime}
+              onChange={handleStartTimeChange}
+              disabled={isSubmitting || isDeleting}
+            >
+              {timeSlots.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="edit-end-time">Время окончания</label>
+            <select
+              id="edit-end-time"
+              className="slot-select"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              disabled={isSubmitting || isDeleting}
+            >
+              <option value="">Выберите время</option>
+              {availableEndTimes.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
-    </div>
+
+      {error && <div className="alert alert-error">{error}</div>}
+    </Modal>
   )
 }
 

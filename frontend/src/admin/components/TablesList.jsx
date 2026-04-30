@@ -1,9 +1,7 @@
 const shapeLabels = {
   round: 'Круглый',
-  square: 'Квадратный',
   rect: 'Прямоугольный',
 }
-
 const zoneLabels = {
   main: 'Основной зал',
   terrace: 'Терраса',
@@ -19,33 +17,36 @@ export default function TablesList({ tables, onEdit, onDelete }) {
     <div className="table-list">
       {tables.map((table) => (
         <div key={table.id} className="table-list-card">
-          <p><strong>Номер:</strong> {table.number}</p>
-          <p><strong>Вместимость:</strong> {table.capacity}</p>
-          <p><strong>Форма:</strong> {shapeLabels[table.shape] || table.shape}</p>
-          <p><strong>Зона:</strong> {zoneLabels[table.zone] || table.zone}</p>
-          <p><strong>Координаты:</strong> ({table.x}, {table.y})</p>
-          <p><strong>Размер:</strong> {table.width} × {table.height}</p>
-          <p><strong>Статус:</strong> {table.is_active ? 'Активен' : 'Неактивен'}</p>
+          <div className="table-list-content">
+            <p><strong>Номер:</strong> {table.number}</p>
+            <p><strong>Вместимость:</strong> {table.capacity}</p>
+            <p><strong>Форма:</strong> {shapeLabels[table.shape] || table.shape}</p>
+            <p><strong>Зона:</strong> {zoneLabels[table.zone] || table.zone}</p>
+            <p><strong>Координаты:</strong> ({table.x}, {table.y})</p>
+            <p><strong>Размер:</strong> {table.width} × {table.height}</p>
+            <p><strong>Статус:</strong> {table.is_active ? 'Активен' : 'Неактивен'}</p>
 
-          <div className="table-features-preview">
-            <strong>Характеристики:</strong>
-            {table.features_details?.length ? (
-              <div className="feature-tags">
-                {table.features_details.map((feature) => (
-                  <span key={feature.id} className="feature-tag">
-                    {feature.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span className="feature-empty-inline"> не указаны</span>
-            )}
+            <div className="table-features-preview">
+              <strong>Характеристики:</strong>
+
+              {table.features_details?.length ? (
+                <div className="feature-tags">
+                  {table.features_details.map((feature) => (
+                    <span key={feature.id} className="feature-tag">
+                      {feature.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="feature-empty-inline"> не указаны</span>
+              )}
+            </div>
           </div>
 
           <div className="table-list-actions">
             <button
               type="button"
-              className="table-list-btn edit"
+              className="btn btn-primary"
               onClick={() => onEdit(table)}
             >
               Редактировать
@@ -53,7 +54,7 @@ export default function TablesList({ tables, onEdit, onDelete }) {
 
             <button
               type="button"
-              className="table-list-btn delete"
+              className="btn btn-danger"
               onClick={() => onDelete(table.id)}
             >
               Удалить

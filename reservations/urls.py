@@ -11,6 +11,7 @@ from .views import (
     BookingSettingsView,
     ClientReservationLookupView,
     ClientReservationCancelView,
+    HallSchemeView,
 )
 
 urlpatterns = [
@@ -26,6 +27,6 @@ urlpatterns = [
     path('admin/reservations/<int:pk>/', ReservationDetailView.as_view(), name='reservation-detail'),
     path('admin/booking-settings/', BookingSettingsView.as_view(), name='booking-settings'),
     path('reservations/lookup/', ClientReservationLookupView.as_view(), name='client-reservation-lookup'),
-    path('reservations/cancel/', ClientReservationCancelView.as_view(), name='client-reservation-cancel'
-),
+    path('reservations/cancel/', ClientReservationCancelView.as_view(), name='client-reservation-cancel'),
+    path('admin/hall-scheme/', HallSchemeView.as_view(), name='admin-hall-scheme'),
 ]

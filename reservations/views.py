@@ -4,12 +4,13 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
+from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
 from .serializers import (
     RestaurantTableSerializer,
     ReservationSerializer,
     TableFeatureSerializer,
     BookingSettingsSerializer,
+    HallSchemeSerializer,
 )
 from .permissions import IsAdminUserRole
 
@@ -243,3 +244,25 @@ class ClientReservationCancelView(APIView):
 
         serializer = ReservationSerializer(reservation)
         return Response(serializer.data)
+    
+class HallSchemeView(generics.RetrieveUpdateAPIView):
+    serializer_class = HallSchemeSerializer
+    permission_classes = [IsAdminUserRole]
+
+    def get_object(self):
+        obj, created = HallScheme.objects.get_or_create(pk=1)
+        return obj
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+
+        if obj.image:
+            obj.image.delete(save=False)
+
+        obj.image = None
+        obj.save(update_fields=['image', 'updated_at'])
+
+        return Response(
+            {'detail': 'Схема зала удалена.'},
+            status=status.HTTP_200_OK
+        )

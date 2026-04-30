@@ -1,8 +1,9 @@
 import './AdminTablesPage.css'
 import { useEffect, useState } from 'react'
-import TableForm from '../components/TableForm'
 import TablesList from '../components/TablesList'
 import HallMap from '../components/HallMap'
+import TableFormModal from '../components/TableFormModal'
+import HallSchemePanel from '../components/HallSchemePanel'
 
 import {
   getTables,
@@ -10,7 +11,42 @@ import {
   updateTable,
   deleteTable,
   getTableFeatures,
+  getHallScheme,
+  updateHallScheme,
+  deleteHallScheme,
 } from '../../api/reservations'
+
+const getBackendErrorMessage = (err, fallbackMessage) => {
+  const backendError = err.response?.data
+
+  if (Array.isArray(backendError)) {
+    return backendError.join(' ')
+  }
+
+  if (typeof backendError === 'string') {
+    return backendError
+  }
+
+  if (backendError?.detail) {
+    return backendError.detail
+  }
+
+  if (backendError?.non_field_errors) {
+    return backendError.non_field_errors.join(' ')
+  }
+
+  if (backendError && typeof backendError === 'object') {
+    const messages = Object.values(backendError)
+      .flat()
+      .filter(Boolean)
+
+    if (messages.length) {
+      return messages.join(' ')
+    }
+  }
+
+  return fallbackMessage
+}
 
 export default function AdminTablesPage() {
   const [tables, setTables] = useState([])
@@ -21,6 +57,9 @@ export default function AdminTablesPage() {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [features, setFeatures] = useState([])
+  const [hallScheme, setHallScheme] = useState(null)
+  const [schemeUploading, setSchemeUploading] = useState(false)
+  const [isTableModalOpen, setIsTableModalOpen] = useState(false)
 
   const loadTables = async ({ showLoader = true } = {}) => {
     if (showLoader) {
@@ -43,13 +82,15 @@ export default function AdminTablesPage() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [tablesData, featuresData] = await Promise.all([
+        const [tablesData, featuresData, hallSchemeData] = await Promise.all([
           getTables(),
           getTableFeatures(),
+          getHallScheme(),
         ])
 
         setTables(tablesData)
         setFeatures(featuresData)
+        setHallScheme(hallSchemeData)
       } catch (err) {
         console.error(err)
         setError('Не удалось загрузить данные страницы.')
@@ -61,6 +102,85 @@ export default function AdminTablesPage() {
     fetchInitialData()
   }, [])
 
+  const handleHallSchemeUpload = async (event) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('image', file)
+
+    setSchemeUploading(true)
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      const data = await updateHallScheme(formData)
+      setHallScheme(data)
+      setSuccessMessage('Схема зала обновлена.')
+    } catch (err) {
+      console.error(err)
+      setError('Не удалось загрузить изображение схемы зала.')
+    } finally {
+      setSchemeUploading(false)
+      event.target.value = ''
+    }
+  }
+
+  const handleDeleteHallScheme = async () => {
+    const confirmed = window.confirm('Удалить изображение схемы зала?')
+
+    if (!confirmed) {
+      return
+    }
+
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      await deleteHallScheme()
+
+      setHallScheme((prev) => ({
+        ...prev,
+        image: null,
+        image_url: null,
+      }))
+
+      setSuccessMessage('Схема зала удалена.')
+    } catch (err) {
+      console.error(err)
+      setError('Не удалось удалить схему зала.')
+    }
+  }
+
+  const handleOpenCreateModal = (position) => {
+    setSelectedTable(null)
+    setPresetPosition(position)
+    setIsTableModalOpen(true)
+    setError('')
+    setSuccessMessage('')
+  }
+
+  const handleOpenEditModal = (table) => {
+    setSelectedTable(table)
+    setPresetPosition({
+      x: table.x,
+      y: table.y,
+    })
+    setIsTableModalOpen(true)
+    setError('')
+    setSuccessMessage('')
+  }
+
+  const handleCloseTableModal = () => {
+    setSelectedTable(null)
+    setPresetPosition({ x: 0, y: 0 })
+    setIsTableModalOpen(false)
+    setError('')
+  }
+
   const handleSubmit = async (formData) => {
     setFormLoading(true)
     setError('')
@@ -69,180 +189,151 @@ export default function AdminTablesPage() {
     try {
       if (selectedTable) {
         await updateTable(selectedTable.id, formData)
-        setSuccessMessage('Столик успешно обновлен.')
+        setSuccessMessage('Столик успешно обновлён.')
       } else {
         await createTable(formData)
         setSuccessMessage('Столик успешно добавлен.')
       }
 
       setSelectedTable(null)
-      await loadTables()
+      setPresetPosition({ x: 0, y: 0 })
+      setIsTableModalOpen(false)
+
+      await loadTables({ showLoader: false })
     } catch (err) {
       console.error(err)
-
-      const serverError =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        'Не удалось сохранить столик.'
-
-      setError(serverError)
+      setError(getBackendErrorMessage(err, 'Не удалось сохранить столик.'))
     } finally {
       setFormLoading(false)
     }
   }
 
-  const handleEdit = (table) => {
-    setSelectedTable(table)
-    setError('')
-    setSuccessMessage('')
-  }
-
   const handleDelete = async (id) => {
     const confirmed = window.confirm('Удалить этот столик?')
-    if (!confirmed) return
+
+    if (!confirmed) {
+      return
+    }
 
     setError('')
     setSuccessMessage('')
 
     try {
       await deleteTable(id)
-      setSuccessMessage('Столик успешно удален.')
+      setSuccessMessage('Столик успешно удалён.')
 
       if (selectedTable?.id === id) {
         setSelectedTable(null)
       }
 
-      await loadTables()
+      await loadTables({ showLoader: false })
     } catch (err) {
-        console.error(err)
-
-        const backendError = err.response?.data
-
-        if (Array.isArray(backendError)) {
-          setError(backendError.join(' '))
-        } else if (typeof backendError === 'string') {
-          setError(backendError)
-        } else if (backendError?.detail) {
-          setError(backendError.detail)
-        } else if (backendError?.non_field_errors) {
-          setError(backendError.non_field_errors.join(' '))
-        } else {
-          setError('Не удалось удалить столик.')
-        }
-      }
-  }
-
-  const handleCancelEdit = () => {
-    setSelectedTable(null)
-    setError('')
-    setSuccessMessage('')
+      console.error(err)
+      setError(getBackendErrorMessage(err, 'Не удалось удалить столик.'))
+    }
   }
 
   const handleMapClick = ({ x, y }) => {
-    if (selectedTable) return
-
-    setPresetPosition({ x, y })
-    setSuccessMessage(`Выбрана позиция на карте: x=${x}, y=${y}`)
-    setError('')
+    handleOpenCreateModal({ x, y })
   }
 
   const handleMoveTable = async (table, position, shouldSave) => {
-  setTables((currentTables) =>
+    setTables((currentTables) =>
       currentTables.map((item) =>
-      item.id === table.id
+        item.id === table.id
           ? { ...item, x: position.x, y: position.y }
           : item
       )
-  )
+    )
 
-  if (selectedTable?.id === table.id) {
+    if (selectedTable?.id === table.id) {
       setSelectedTable((currentSelected) =>
-      currentSelected
+        currentSelected
           ? { ...currentSelected, x: position.x, y: position.y }
           : currentSelected
       )
-  }
+    }
 
-  if (!shouldSave) return
+    if (!shouldSave) {
+      return
+    }
 
-  try {
+    try {
       await updateTable(table.id, {
-      number: table.number,
-      capacity: table.capacity,
-      shape: table.shape,
-      x: position.x,
-      y: position.y,
-      width: table.width,
-      height: table.height,
-      zone: table.zone,
-      is_active: table.is_active,
+        number: table.number,
+        capacity: table.capacity,
+        shape: table.shape,
+        x: position.x,
+        y: position.y,
+        width: table.width,
+        height: table.height,
+        zone: table.zone,
+        is_active: table.is_active,
+        features: table.features,
       })
 
-      setSuccessMessage(`Позиция столика №${table.number} сохранена`)
+      setSuccessMessage(`Позиция столика №${table.number} сохранена.`)
       setError('')
-  } catch (err) {
+    } catch (err) {
       console.error(err)
-
-      const serverError =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        'Не удалось сохранить новую позицию столика.'
-
-      setError(serverError)
+      setError(getBackendErrorMessage(err, 'Не удалось сохранить новую позицию столика.'))
       await loadTables({ showLoader: false })
     }
   }
 
-return (
-  <div className="admin-tables-page">
-    <div className="admin-page-header">
-      <h1>Управление столиками</h1>
-    </div>
-
-    {error && <p className="admin-message error">{error}</p>}
-    {successMessage && <p className="admin-message success">{successMessage}</p>}
-
-    <div className="admin-top-grid">
-      <div className="admin-card">
-        <TableForm
-          key={
-            selectedTable
-              ? `edit-${selectedTable.id}`
-              : `new-${presetPosition.x}-${presetPosition.y}`
-          }
-          selectedTable={selectedTable}
-          presetPosition={presetPosition}
-          features={features}
-          onSubmit={handleSubmit}
-          onCancelEdit={handleCancelEdit}
-          loading={formLoading}
-        />
+  return (
+    <div className="admin-tables-page">
+      <div className="admin-page-header">
+        <h1>Управление столиками</h1>
       </div>
+
+      {error && <p className="admin-message error">{error}</p>}
+      {successMessage && <p className="admin-message success">{successMessage}</p>}
 
       {loading ? (
         <div className="admin-card">
           <p>Загрузка карты и списка столиков...</p>
         </div>
       ) : (
-        <HallMap
-          tables={tables}
-          onEdit={handleEdit}
-          onMapClick={handleMapClick}
-          onMoveTable={handleMoveTable}
-        />
-      )}
-    </div>
+        <div className="admin-map-section">
+          <HallSchemePanel
+            hallScheme={hallScheme}
+            schemeUploading={schemeUploading}
+            onUpload={handleHallSchemeUpload}
+            onDelete={handleDeleteHallScheme}
+          />
 
-    {!loading && (
-      <div>
-        <h2>Список столиков</h2>
-        <TablesList
-          tables={tables}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      </div>
-    )}
-  </div>
-)
+          <HallMap
+            tables={tables}
+            hallScheme={hallScheme}
+            onEdit={handleOpenEditModal}
+            onMapClick={handleMapClick}
+            onMoveTable={handleMoveTable}
+          />
+        </div>
+      )}
+
+      {!loading && (
+        <div className="tables-list-section">
+          <h2>Список столиков</h2>
+
+          <TablesList
+            tables={tables}
+            onEdit={handleOpenEditModal}
+            onDelete={handleDelete}
+          />
+        </div>
+      )}
+
+      <TableFormModal
+        isOpen={isTableModalOpen}
+        selectedTable={selectedTable}
+        presetPosition={presetPosition}
+        features={features}
+        onSubmit={handleSubmit}
+        onClose={handleCloseTableModal}
+        loading={formLoading}
+      />
+    </div>
+  )
 }

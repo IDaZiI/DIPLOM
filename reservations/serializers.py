@@ -1,7 +1,7 @@
 from django.utils.text import slugify
 from rest_framework import serializers
 from django.utils import timezone
-from .models import RestaurantTable, Reservation, TableFeature, BookingSettings
+from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
 
 def transliterate_ru(text):
     mapping = {
@@ -212,3 +212,26 @@ class BookingSettingsSerializer(serializers.ModelSerializer):
         if value < 0 or value > 100:
             raise serializers.ValidationError('Процент онлайн-бронирования должен быть от 0 до 100.')
         return value
+
+class HallSchemeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HallScheme
+        fields = [
+            'id',
+            'image',
+            'image_url',
+            'updated_at',
+        ]
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+
+        if obj.image:
+            return obj.image.url
+
+        return None

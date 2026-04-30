@@ -15,9 +15,8 @@ class TableFeature(models.Model):
 
 class RestaurantTable(models.Model):
     SHAPE_CHOICES = [
-        ('round', 'Round'),
-        ('square', 'Square'),
-        ('rect', 'Rectangle'),
+        ('round', 'Круглый'),
+        ('rect', 'Прямоугольный'),
     ]
 
     ZONE_CHOICES = [
@@ -28,7 +27,7 @@ class RestaurantTable(models.Model):
 
     number = models.PositiveIntegerField(unique=True)
     capacity = models.PositiveIntegerField()
-    shape = models.CharField(max_length=20, choices=SHAPE_CHOICES, default='square')
+    shape = models.CharField(max_length=20, choices=SHAPE_CHOICES, default='rect')
 
     x = models.PositiveIntegerField(default=0)
     y = models.PositiveIntegerField(default=0)
@@ -108,3 +107,15 @@ class BookingSettings(models.Model):
 
     def __str__(self):
         return "Booking Settings"
+    
+class HallScheme(models.Model):
+    image = models.ImageField(
+        upload_to='hall_schemes/',
+        blank=True,
+        null=True,
+        verbose_name='Изображение схемы зала'
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return 'Схема зала'

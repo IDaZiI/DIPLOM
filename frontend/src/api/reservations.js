@@ -127,3 +127,37 @@ export const cancelClientReservation = async (data) => {
   const response = await axios.post(`${API_URL}reservations/cancel/`, data)
   return response.data
 }
+
+export const getHallScheme = async () => {
+  const response = await axios.get(
+    `${API_URL}admin/hall-scheme/`,
+    getAuthConfig()
+  )
+
+  return response.data
+}
+
+export const updateHallScheme = async (data) => {
+  const response = await axios.patch(
+    `${API_URL}admin/hall-scheme/`,
+    data,
+    {
+      ...getAuthConfig(),
+      headers: {
+        ...getAuthConfig().headers,
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+
+  return response.data
+}
+
+export const deleteHallScheme = async () => {
+  const response = await axios.delete(
+    `${API_URL}admin/hall-scheme/`,
+    getAuthConfig()
+  )
+
+  return response.data
+}

@@ -19,7 +19,7 @@ const getInitialFormState = (selectedTable, presetPosition) => {
   return {
     number: '',
     capacity: '',
-    shape: 'square',
+    shape: 'rect',
     x: presetPosition?.x ?? 0,
     y: presetPosition?.y ?? 0,
     width: 80,
@@ -81,7 +81,6 @@ export default function TableForm({
 
   return (
     <form onSubmit={handleSubmit} className="table-form">
-      <h2>{selectedTable ? 'Редактирование столика' : 'Добавление столика'}</h2>
 
       <div className="table-form-row">
         <label htmlFor="number">Номер</label>
@@ -115,9 +114,8 @@ export default function TableForm({
           value={formData.shape}
           onChange={handleChange}
         >
-          <option value="round">Круглый</option>
-          <option value="square">Квадратный</option>
           <option value="rect">Прямоугольный</option>
+          <option value="round">Круглый</option>
         </select>
       </div>
 
@@ -133,30 +131,6 @@ export default function TableForm({
           <option value="terrace">Терраса</option>
           <option value="vip">VIP</option>
         </select>
-      </div>
-
-      <div className="table-form-row">
-        <label htmlFor="x">X</label>
-        <input
-          id="x"
-          type="number"
-          name="x"
-          value={formData.x}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="table-form-row">
-        <label htmlFor="y">Y</label>
-        <input
-          id="y"
-          type="number"
-          name="y"
-          value={formData.y}
-          onChange={handleChange}
-          required
-        />
       </div>
 
       <div className="table-form-row">

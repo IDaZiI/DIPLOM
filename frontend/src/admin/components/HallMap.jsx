@@ -1,8 +1,11 @@
 import { useRef, useState } from 'react'
 
+const MAP_WIDTH = 1000
+const MAP_HEIGHT = 707
+const DRAG_THRESHOLD = 4
+
 const shapeClassMap = {
   round: 'hall-table round',
-  square: 'hall-table square',
   rect: 'hall-table rect',
 }
 
@@ -30,76 +33,135 @@ const isOverlapping = (movingTable, nextPosition, tables) => {
   })
 }
 
+const toPercent = (value, max) => `${(value / max) * 100}%`
+
+const getMapPosition = (event, mapElement) => {
+  const rect = mapElement.getBoundingClientRect()
+
+  const x = Math.round(((event.clientX - rect.left) / rect.width) * MAP_WIDTH)
+  const y = Math.round(((event.clientY - rect.top) / rect.height) * MAP_HEIGHT)
+
+  return {
+    x: Math.max(0, Math.min(x, MAP_WIDTH)),
+    y: Math.max(0, Math.min(y, MAP_HEIGHT)),
+  }
+}
+
 export default function HallMap({
   tables,
+  hallScheme,
   onEdit,
   onMapClick,
   onMoveTable,
 }) {
   const mapRef = useRef(null)
+  const dragStartRef = useRef(null)
+  const suppressClickRef = useRef(false)
   const [draggingId, setDraggingId] = useState(null)
 
-  const handleMapClick = (e) => {
+  const handleMapClick = (event) => {
     if (draggingId) return
-    if (e.target !== e.currentTarget) return
+    if (event.target !== event.currentTarget) return
 
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = Math.round(e.clientX - rect.left)
-    const y = Math.round(e.clientY - rect.top)
+    const position = getMapPosition(event, event.currentTarget)
 
-    onMapClick({ x, y })
+    onMapClick(position)
   }
 
-  const handleMouseDown = (e, table) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleTableClick = (event, table) => {
+    event.stopPropagation()
 
-    const mapRect = mapRef.current.getBoundingClientRect()
-    const startOffsetX = e.clientX - mapRect.left - table.x
-    const startOffsetY = e.clientY - mapRect.top - table.y
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false
+      return
+    }
+
+    onEdit(table)
+  }
+
+  const handleMouseDown = (event, table) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const mapElement = mapRef.current
+    const startPosition = getMapPosition(event, mapElement)
+
+    dragStartRef.current = {
+      mouseX: event.clientX,
+      mouseY: event.clientY,
+      offsetX: startPosition.x - table.x,
+      offsetY: startPosition.y - table.y,
+      hasMoved: false,
+    }
 
     setDraggingId(table.id)
 
     const handleMouseMove = (moveEvent) => {
-      const currentMapRect = mapRef.current.getBoundingClientRect()
+      const dragStart = dragStartRef.current
 
-      let newX = Math.round(moveEvent.clientX - currentMapRect.left - startOffsetX)
-      let newY = Math.round(moveEvent.clientY - currentMapRect.top - startOffsetY)
+      if (!dragStart) return
 
-      const maxX = currentMapRect.width - table.width
-      const maxY = currentMapRect.height - table.height
+      const diffX = Math.abs(moveEvent.clientX - dragStart.mouseX)
+      const diffY = Math.abs(moveEvent.clientY - dragStart.mouseY)
+
+      if (diffX > DRAG_THRESHOLD || diffY > DRAG_THRESHOLD) {
+        dragStart.hasMoved = true
+      }
+
+      const currentPosition = getMapPosition(moveEvent, mapElement)
+
+      let newX = Math.round(currentPosition.x - dragStart.offsetX)
+      let newY = Math.round(currentPosition.y - dragStart.offsetY)
+
+      const maxX = MAP_WIDTH - table.width
+      const maxY = MAP_HEIGHT - table.height
 
       newX = Math.max(0, Math.min(newX, maxX))
       newY = Math.max(0, Math.min(newY, maxY))
 
-			const overlaps = isOverlapping(table, { x: newX, y: newY }, tables)
-			if (overlaps) return
+      const overlaps = isOverlapping(table, { x: newX, y: newY }, tables)
+
+      if (overlaps) return
 
       onMoveTable(table, { x: newX, y: newY }, false)
     }
 
-    const handleMouseUp = async (upEvent) => {
-      const currentMapRect = mapRef.current.getBoundingClientRect()
+    const handleMouseUp = (upEvent) => {
+      const dragStart = dragStartRef.current
 
-      let newX = Math.round(upEvent.clientX - currentMapRect.left - startOffsetX)
-      let newY = Math.round(upEvent.clientY - currentMapRect.top - startOffsetY)
+      if (!dragStart) {
+        setDraggingId(null)
+        return
+      }
 
-      const maxX = currentMapRect.width - table.width
-      const maxY = currentMapRect.height - table.height
+      const diffX = Math.abs(upEvent.clientX - dragStart.mouseX)
+      const diffY = Math.abs(upEvent.clientY - dragStart.mouseY)
+      const wasDragged =
+        dragStart.hasMoved || diffX > DRAG_THRESHOLD || diffY > DRAG_THRESHOLD
 
-      newX = Math.max(0, Math.min(newX, maxX))
-      newY = Math.max(0, Math.min(newY, maxY))
+      if (wasDragged) {
+        const currentPosition = getMapPosition(upEvent, mapElement)
 
-			const overlaps = isOverlapping(table, { x: newX, y: newY }, tables)
-			if (overlaps) {
-				setDraggingId(null)
-				window.removeEventListener('mousemove', handleMouseMove)
-				window.removeEventListener('mouseup', handleMouseUp)
-				return
-			}
+        let newX = Math.round(currentPosition.x - dragStart.offsetX)
+        let newY = Math.round(currentPosition.y - dragStart.offsetY)
 
+        const maxX = MAP_WIDTH - table.width
+        const maxY = MAP_HEIGHT - table.height
+
+        newX = Math.max(0, Math.min(newX, maxX))
+        newY = Math.max(0, Math.min(newY, maxY))
+
+        const overlaps = isOverlapping(table, { x: newX, y: newY }, tables)
+
+        if (!overlaps) {
+          onMoveTable(table, { x: newX, y: newY }, true)
+        }
+
+        suppressClickRef.current = true
+      }
+
+      dragStartRef.current = null
       setDraggingId(null)
-      onMoveTable(table, { x: newX, y: newY }, true)
 
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
@@ -113,29 +175,35 @@ export default function HallMap({
     <div className="hall-map-wrapper">
       <h2>Карта зала</h2>
 
+      <p className="hall-map-hint">
+        Нажмите на свободное место схемы, чтобы создать столик, или перетащите существующий столик для изменения его положения.
+      </p>
+
       <div
         ref={mapRef}
-        className="hall-map"
+        className={`hall-map ${hallScheme?.image_url ? 'has-background' : ''}`}
+        style={
+          hallScheme?.image_url
+            ? { backgroundImage: `url(${hallScheme.image_url})` }
+            : undefined
+        }
         onClick={handleMapClick}
       >
         {tables.map((table) => (
           <button
             key={table.id}
             type="button"
-            className={`${shapeClassMap[table.shape] || 'hall-table'} ${
+            className={`${shapeClassMap[table.shape] || 'hall-table rect'} ${
               table.is_active ? '' : 'inactive'
             } ${draggingId === table.id ? 'dragging' : ''}`}
             style={{
-              left: `${table.x}px`,
-              top: `${table.y}px`,
-              width: `${table.width}px`,
-              height: `${table.height}px`,
+              left: toPercent(table.x, MAP_WIDTH),
+              top: toPercent(table.y, MAP_HEIGHT),
+              width: toPercent(table.width, MAP_WIDTH),
+              height: toPercent(table.height, MAP_HEIGHT),
             }}
-            onClick={(e) => {
-              e.stopPropagation()
-              onEdit(table)
-            }}
-            onMouseDown={(e) => handleMouseDown(e, table)}
+            onClick={(event) => handleTableClick(event, table)}
+            onMouseDown={(event) => handleMouseDown(event, table)}
             title={`Столик №${table.number}`}
           >
             <span className="hall-table-number">{table.number}</span>
