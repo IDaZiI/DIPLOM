@@ -42,3 +42,12 @@ export const createWaiter = async (data) => {
 export const updateWaiter = async (id, data) => {
   return axios.patch(`${ADMIN_WAITERS_URL}${id}/`, data, getAuthHeader())
 }
+
+export const getCurrentUser = async () => {
+  const response = await axios.get(`${BASE_API_URL}me/`, getAuthHeader())
+  return response.data
+}
+
+export const getMyConfirmedShifts = async () => {
+  return axios.get(`${BASE_API_URL}confirmed-shifts/`, getAuthHeader())
+}

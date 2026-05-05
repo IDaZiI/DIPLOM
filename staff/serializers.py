@@ -1,7 +1,7 @@
 from rest_framework import serializers
+from django.utils import timezone
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from datetime import date
-from .models import EmployeeAvailability, User
+from .models import EmployeeAvailability, User, ConfirmedShift
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -55,7 +55,7 @@ class EmployeeAvailabilitySerializer(serializers.ModelSerializer):
         end_time = data.get('end_time', getattr(self.instance, 'end_time', None))
         selected_date = data.get('date', getattr(self.instance, 'date', None))
 
-        if selected_date < date.today():
+        if selected_date < timezone.localdate():
             raise serializers.ValidationError({
                 'date': 'Нельзя указывать доступность на прошедшую дату.'
             })
@@ -183,5 +183,122 @@ class AdminWaiterUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Можно изменять только учётные записи официантов.'
             )
+
+        return attrs
+    
+
+class ConfirmedShiftSerializer(serializers.ModelSerializer):
+    employee_username = serializers.CharField(source='employee.username', read_only=True)
+    employee_full_name = serializers.SerializerMethodField()
+    zone_display = serializers.CharField(source='get_zone_display', read_only=True)
+    duration_hours = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ConfirmedShift
+        fields = [
+            'id',
+            'employee',
+            'availability',
+            'employee_username',
+            'employee_full_name',
+            'date',
+            'start_time',
+            'end_time',
+            'zone',
+            'zone_display',
+            'actual_start_time',
+            'actual_end_time',
+            'is_manual',
+            'note',
+            'assigned_at',
+            'duration_hours',
+        ]
+        read_only_fields = [
+            'id',
+            'employee_username',
+            'employee_full_name',
+            'zone_display',
+            'assigned_at',
+            'duration_hours',
+        ]
+
+    def get_employee_full_name(self, obj):
+        full_name = f'{obj.employee.first_name} {obj.employee.last_name}'.strip()
+        return full_name or obj.employee.username
+
+    def get_duration_hours(self, obj):
+        start_minutes = obj.start_time.hour * 60 + obj.start_time.minute
+        end_minutes = obj.end_time.hour * 60 + obj.end_time.minute
+
+        duration_minutes = max(0, end_minutes - start_minutes)
+
+        return round(duration_minutes / 60, 2)
+
+    def validate(self, attrs):
+        employee = attrs.get(
+            'employee',
+            self.instance.employee if self.instance else None
+        )
+        availability = attrs.get(
+            'availability',
+            self.instance.availability if self.instance else None
+        )
+        date = attrs.get(
+            'date',
+            self.instance.date if self.instance else None
+        )
+        start_time = attrs.get(
+            'start_time',
+            self.instance.start_time if self.instance else None
+        )
+        end_time = attrs.get(
+            'end_time',
+            self.instance.end_time if self.instance else None
+        )
+        actual_start_time = attrs.get(
+            'actual_start_time',
+            self.instance.actual_start_time if self.instance else None
+        )
+        actual_end_time = attrs.get(
+            'actual_end_time',
+            self.instance.actual_end_time if self.instance else None
+        )
+
+        if start_time and end_time and end_time <= start_time:
+            raise serializers.ValidationError({
+                'end_time': 'Время окончания должно быть позже времени начала.'
+            })
+
+        if (
+            actual_start_time
+            and actual_end_time
+            and actual_end_time <= actual_start_time
+        ):
+            raise serializers.ValidationError({
+                'actual_end_time': 'Фактическое окончание должно быть позже фактического начала.'
+            })
+
+        if availability:
+            if employee and availability.employee_id != employee.id:
+                raise serializers.ValidationError(
+                    'Подтверждённая смена должна относиться к тому же сотруднику, что и интервал доступности.'
+                )
+
+            if date and availability.date != date:
+                raise serializers.ValidationError(
+                    'Дата смены должна совпадать с датой интервала доступности.'
+                )
+
+            if (
+                start_time
+                and end_time
+                and (
+                    start_time < availability.start_time
+                    or end_time > availability.end_time
+                )
+            ):
+                raise serializers.ValidationError(
+                    'Подтверждённая смена должна находиться внутри интервала доступности сотрудника.'
+                )
 
         return attrs

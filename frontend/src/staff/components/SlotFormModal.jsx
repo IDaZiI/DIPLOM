@@ -3,6 +3,7 @@ import { createAvailability } from '../../api/availability'
 import { formatDate } from '../../utils/formatDate'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import Modal from '../../shared/components/Modal'
+import './SlotFormModal.css'
 
 function SlotFormModal({ selectedCell, timeSlots, onClose, onSaved }) {
   const [startTime, setStartTime] = useState(selectedCell?.time ?? '')

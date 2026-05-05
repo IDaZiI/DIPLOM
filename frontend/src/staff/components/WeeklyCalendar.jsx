@@ -1,6 +1,6 @@
 import "./WeeklyCalendar.css"
 import { useEffect, useMemo, useState } from 'react'
-import { getAvailabilities } from '../../api/availability'
+import { getAvailabilities, getMyConfirmedShifts } from '../../api/availability'
 import {
   getWeekDays,
   formatDayLabel,
@@ -18,22 +18,28 @@ function WeeklyCalendar() {
   const [selectedCell, setSelectedCell] = useState(null)
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [records, setRecords] = useState([])
+  const [confirmedShifts, setConfirmedShifts] = useState([])
   const [refreshKey, setRefreshKey] = useState(0)
 
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate])
   const timeSlots = useMemo(() => generateTimeSlots(), [])
 
   useEffect(() => {
-    const fetchRecords = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getAvailabilities()
-        setRecords(response.data)
+        const [availabilityResponse, shiftsResponse] = await Promise.all([
+          getAvailabilities(),
+          getMyConfirmedShifts(),
+        ])
+
+        setRecords(availabilityResponse.data)
+        setConfirmedShifts(shiftsResponse.data)
       } catch (err) {
-        console.error('Ошибка при загрузке записей календаря:', err)
+        console.error('Ошибка при загрузке данных календаря:', err)
       }
     }
 
-    fetchRecords()
+    fetchData()
   }, [refreshKey])
 
   const goToPreviousWeek = () => {
@@ -52,6 +58,18 @@ function WeeklyCalendar() {
     const weekDates = weekDays.map((day) => toISODate(day))
     return records.filter((record) => weekDates.includes(record.date))
   }, [records, weekDays])
+
+  const confirmedShiftByAvailabilityId = useMemo(() => {
+    const map = {}
+
+    confirmedShifts.forEach((shift) => {
+      if (shift.availability) {
+        map[shift.availability] = shift
+      }
+    })
+
+    return map
+  }, [confirmedShifts])
 
   const isCellOccupied = (date, time) => {
     const isoDate = toISODate(date)
@@ -78,6 +96,16 @@ function WeeklyCalendar() {
   }
 
   const handleRecordClick = (record) => {
+    const shift = confirmedShiftByAvailabilityId[record.id]
+
+    if (shift) {
+      return
+    }
+
+    if (isPastRecordDate(record.date)) {
+      return
+    }
+
     setSelectedCell(null)
     setSelectedRecord(record)
   }
@@ -109,8 +137,83 @@ function WeeklyCalendar() {
     }
   }
 
+  const getTodayISO = () => {
+    const now = new Date()
+    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    return localDate.toISOString().split('T')[0]
+  }
+
+  const getConfirmedShiftStatus = (shift) => {
+    if (!shift) return null
+
+    if (shift.date < getTodayISO()) {
+      return 'completed'
+    }
+
+    return 'planned'
+  }
+
+  const isPastRecordDate = (date) => {
+    return date < getTodayISO()
+  }
+
+  const getRecordBlockClassName = (record) => {
+    const shift = confirmedShiftByAvailabilityId[record.id]
+    const status = getConfirmedShiftStatus(shift)
+
+    if (status === 'completed') {
+      return 'calendar-record-block calendar-record-block-completed'
+    }
+
+    if (status === 'planned') {
+      return 'calendar-record-block calendar-record-block-confirmed'
+    }
+
+    if (isPastRecordDate(record.date)) {
+      return 'calendar-record-block calendar-record-block-disabled'
+    }
+
+    return 'calendar-record-block'
+  }
+
+  const getRecordBlockLabel = (record) => {
+    const shift = confirmedShiftByAvailabilityId[record.id]
+    const status = getConfirmedShiftStatus(shift)
+
+    if (status === 'completed') {
+      return 'Отработана'
+    }
+
+    if (status === 'planned') {
+      return 'Подтверждена'
+    }
+
+    return 'Доступность'
+  }
+
   return (
     <div className="weekly-calendar card">
+      <div className="calendar-legend">
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot availability"></span>
+          <span>Доступность</span>
+        </div>
+
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot confirmed"></span>
+          <span>Подтверждённая смена</span>
+        </div>
+
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot completed"></span>
+          <span>Отработанная смена</span>
+        </div>
+
+        <p className="calendar-legend-note">
+          Подтверждённые и отработанные смены недоступны для редактирования.
+        </p>
+      </div>
+
       <div className="calendar-toolbar">
         <button className="btn btn-secondary" onClick={goToPreviousWeek}>
           ← Неделя назад
@@ -190,13 +293,22 @@ function WeeklyCalendar() {
                 <button
                   key={record.id}
                   type="button"
-                  className="calendar-record-block"
+                  className={getRecordBlockClassName(record)}
                   style={position}
                   onClick={() => handleRecordClick(record)}
+                  title={
+                    confirmedShiftByAvailabilityId[record.id]
+                      ? 'Эта доступность уже подтверждена как смена и недоступна для редактирования'
+                      : getRecordBlockLabel(record)
+                  }
                 >
-                  <div className="calendar-record-block-time">
+                  <span className="calendar-record-block-label">
+                    {getRecordBlockLabel(record)}
+                  </span>
+
+                  <span className="calendar-record-block-time">
                     {formatTime(record.start_time)} — {formatTime(record.end_time)}
-                  </div>
+                  </span>
                 </button>
               )
             })}

@@ -57,7 +57,7 @@ export default function AdminWaitersPage() {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  const loadWaiters = async () => {
+  const loadEmployees = async () => {
     setLoading(true)
 
     try {
@@ -66,14 +66,14 @@ export default function AdminWaitersPage() {
       setError('')
     } catch (err) {
       console.error(err)
-      setError('Не удалось загрузить список официантов.')
+      setError('Не удалось загрузить список сотрудников.')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadWaiters()
+    loadEmployees()
   }, [])
 
   const handleChange = (field, value) => {
@@ -93,15 +93,15 @@ export default function AdminWaitersPage() {
     try {
       await createWaiter(formData)
       setFormData(initialForm)
-      setSuccessMessage('Учётная запись официанта создана.')
-      await loadWaiters()
+      setSuccessMessage('Учётная запись сотрудника создана.')
+      await loadEmployees()
     } catch (err) {
       console.error(err)
 
       setError(
         getBackendErrorMessage(
           err,
-          'Не удалось создать учётную запись официанта.'
+          'Не удалось создать учётную запись сотрудника.'
         )
       )
     } finally {
@@ -109,115 +109,115 @@ export default function AdminWaitersPage() {
     }
   }
 
-  const handleToggleWaiterStatus = async (waiter) => {
-  const newStatus = !waiter.is_active
+  const handleToggleEmployeeStatus = async (employee) => {
+    const newStatus = !employee.is_active
 
-  const confirmed = window.confirm(
-    newStatus
-      ? 'Активировать учётную запись официанта?'
-      : 'Деактивировать учётную запись официанта?'
-  )
-
-  if (!confirmed) {
-    return
-  }
-
-  setUpdatingId(waiter.id)
-  setError('')
-  setSuccessMessage('')
-
-  try {
-    await updateWaiter(waiter.id, {
-      is_active: newStatus,
-    })
-
-    setSuccessMessage(
+    const confirmed = window.confirm(
       newStatus
-        ? 'Учётная запись официанта активирована.'
-        : 'Учётная запись официанта деактивирована.'
+        ? 'Активировать учётную запись сотрудника?'
+        : 'Деактивировать учётную запись сотрудника?'
     )
 
-    await loadWaiters()
-  } catch (err) {
-    console.error(err)
+    if (!confirmed) {
+      return
+    }
 
-    setError(
-      getBackendErrorMessage(
-        err,
-        'Не удалось изменить состояние учётной записи официанта.'
+    setUpdatingId(employee.id)
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      await updateWaiter(employee.id, {
+        is_active: newStatus,
+      })
+
+      setSuccessMessage(
+        newStatus
+          ? 'Учётная запись сотрудника активирована.'
+          : 'Учётная запись сотрудника деактивирована.'
       )
-    )
-  } finally {
-    setUpdatingId(null)
+
+      await loadEmployees()
+    } catch (err) {
+      console.error(err)
+
+      setError(
+        getBackendErrorMessage(
+          err,
+          'Не удалось изменить состояние учётной записи сотрудника.'
+        )
+      )
+    } finally {
+      setUpdatingId(null)
+    }
   }
-}
 
-const handleStartEdit = (waiter) => {
-  setEditingId(waiter.id)
-  setEditFormData({
-    first_name: waiter.first_name || '',
-    last_name: waiter.last_name || '',
-    email: waiter.email || '',
-  })
-  setError('')
-  setSuccessMessage('')
-}
+  const handleStartEdit = (employee) => {
+    setEditingId(employee.id)
+    setEditFormData({
+      first_name: employee.first_name || '',
+      last_name: employee.last_name || '',
+      email: employee.email || '',
+    })
+    setError('')
+    setSuccessMessage('')
+  }
 
-const handleCancelEdit = () => {
-  setEditingId(null)
-  setEditFormData({
-    first_name: '',
-    last_name: '',
-    email: '',
-  })
-}
-
-const handleEditFormChange = (field, value) => {
-  setEditFormData((prev) => ({
-    ...prev,
-    [field]: value,
-  }))
-}
-
-const handleSaveWaiter = async (waiter) => {
-  setUpdatingId(waiter.id)
-  setError('')
-  setSuccessMessage('')
-
-  try {
-    await updateWaiter(waiter.id, editFormData)
-
-    setSuccessMessage('Данные официанта обновлены.')
+  const handleCancelEdit = () => {
     setEditingId(null)
     setEditFormData({
       first_name: '',
       last_name: '',
       email: '',
     })
-
-    await loadWaiters()
-  } catch (err) {
-    console.error(err)
-
-    setError(
-      getBackendErrorMessage(
-        err,
-        'Не удалось обновить данные официанта.'
-      )
-    )
-  } finally {
-    setUpdatingId(null)
   }
-}
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleSaveEmployee = async (employee) => {
+    setUpdatingId(employee.id)
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      await updateWaiter(employee.id, editFormData)
+
+      setSuccessMessage('Данные сотрудника обновлены.')
+      setEditingId(null)
+      setEditFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+      })
+
+      await loadEmployees()
+    } catch (err) {
+      console.error(err)
+
+      setError(
+        getBackendErrorMessage(
+          err,
+          'Не удалось обновить данные сотрудника.'
+        )
+      )
+    } finally {
+      setUpdatingId(null)
+    }
+  }
 
   return (
     <div className="admin-waiters-page">
       <div className="admin-waiters-header">
         <div>
-          <h1>Официанты</h1>
+          <h1>Сотрудники</h1>
           <p>
-            Создание учётных записей сотрудников, которые смогут входить в систему
-            и указывать свою доступность.
+            Создание и редактирование учётных записей сотрудников, которые смогут
+            входить в систему и указывать свою доступность для работы.
           </p>
         </div>
       </div>
@@ -227,7 +227,7 @@ const handleSaveWaiter = async (waiter) => {
 
       <div className="admin-waiters-layout">
         <form className="waiter-form admin-card" onSubmit={handleSubmit}>
-          <h2>Новый официант</h2>
+          <h2>Новый сотрудник</h2>
 
           <label>
             Логин
@@ -291,22 +291,22 @@ const handleSaveWaiter = async (waiter) => {
             className="admin-btn primary"
             disabled={creating}
           >
-            {creating ? 'Создание...' : 'Создать официанта'}
+            {creating ? 'Создание...' : 'Создать сотрудника'}
           </button>
         </form>
 
         <section className="admin-card waiters-list-card">
-          <h2>Список официантов</h2>
+          <h2>Список сотрудников</h2>
 
           {loading ? (
-            <p>Загрузка официантов...</p>
+            <p>Загрузка сотрудников...</p>
           ) : waiters.length ? (
             <div className="waiters-list">
-              {waiters.map((waiter) => {
-                const isEditing = editingId === waiter.id
+              {waiters.map((employee) => {
+                const isEditing = editingId === employee.id
 
                 return (
-                  <div key={waiter.id} className="waiter-item">
+                  <div key={employee.id} className="waiter-item">
                     {isEditing ? (
                       <div className="waiter-edit-form">
                         <label>
@@ -337,28 +337,28 @@ const handleSaveWaiter = async (waiter) => {
                         </label>
 
                         <p className="waiter-login-hint">
-                          Логин: @{waiter.username}
+                          Логин: @{employee.username}
                         </p>
                       </div>
                     ) : (
                       <div>
                         <strong>
-                          {waiter.first_name || waiter.last_name
-                            ? `${waiter.first_name} ${waiter.last_name}`.trim()
-                            : waiter.username}
+                          {employee.first_name || employee.last_name
+                            ? `${employee.first_name} ${employee.last_name}`.trim()
+                            : employee.username}
                         </strong>
 
-                        <p>@{waiter.username}</p>
+                        <p>@{employee.username}</p>
 
-                        {waiter.email && (
-                          <p>{waiter.email}</p>
+                        {employee.email && (
+                          <p>{employee.email}</p>
                         )}
                       </div>
                     )}
 
                     <div className="waiter-actions">
-                      <span className={`waiter-status ${waiter.is_active ? 'active' : 'inactive'}`}>
-                        {waiter.is_active ? 'Активен' : 'Деактивирован'}
+                      <span className={`waiter-status ${employee.is_active ? 'active' : 'inactive'}`}>
+                        {employee.is_active ? 'Активен' : 'Деактивирован'}
                       </span>
 
                       {isEditing ? (
@@ -366,8 +366,8 @@ const handleSaveWaiter = async (waiter) => {
                           <button
                             type="button"
                             className="admin-btn primary"
-                            onClick={() => handleSaveWaiter(waiter)}
-                            disabled={updatingId === waiter.id}
+                            onClick={() => handleSaveEmployee(employee)}
+                            disabled={updatingId === employee.id}
                           >
                             Сохранить
                           </button>
@@ -376,7 +376,7 @@ const handleSaveWaiter = async (waiter) => {
                             type="button"
                             className="admin-btn secondary"
                             onClick={handleCancelEdit}
-                            disabled={updatingId === waiter.id}
+                            disabled={updatingId === employee.id}
                           >
                             Отмена
                           </button>
@@ -386,19 +386,19 @@ const handleSaveWaiter = async (waiter) => {
                           <button
                             type="button"
                             className="admin-btn secondary"
-                            onClick={() => handleStartEdit(waiter)}
-                            disabled={updatingId === waiter.id}
+                            onClick={() => handleStartEdit(employee)}
+                            disabled={updatingId === employee.id}
                           >
                             Редактировать
                           </button>
 
                           <button
                             type="button"
-                            className={waiter.is_active ? 'admin-btn secondary' : 'admin-btn primary'}
-                            onClick={() => handleToggleWaiterStatus(waiter)}
-                            disabled={updatingId === waiter.id}
+                            className={employee.is_active ? 'admin-btn secondary' : 'admin-btn primary'}
+                            onClick={() => handleToggleEmployeeStatus(employee)}
+                            disabled={updatingId === employee.id}
                           >
-                            {waiter.is_active ? 'Деактивировать' : 'Активировать'}
+                            {employee.is_active ? 'Деактивировать' : 'Активировать'}
                           </button>
                         </>
                       )}
@@ -408,7 +408,7 @@ const handleSaveWaiter = async (waiter) => {
               })}
             </div>
           ) : (
-            <p>Официанты пока не добавлены.</p>
+            <p>Сотрудники пока не добавлены.</p>
           )}
         </section>
       </div>

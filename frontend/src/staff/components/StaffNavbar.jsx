@@ -13,7 +13,7 @@ function StaffNavbar() {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        <div className="navbar-brand">Модуль официанта</div>
+        <div className="navbar-brand">Модуль сотрудника</div>
 
         <div className="navbar-links">
           <NavLink
@@ -31,7 +31,16 @@ function StaffNavbar() {
               isActive ? 'nav-link nav-link-active' : 'nav-link'
             }
           >
-            Записи
+            Мои записи
+          </NavLink>
+
+          <NavLink
+            to="/my-shifts"
+            className={({ isActive }) =>
+              isActive ? 'nav-link nav-link-active' : 'nav-link'
+            }
+          >
+            Мои смены
           </NavLink>
 
           <button className="btn btn-secondary" onClick={handleLogout}>

@@ -12,6 +12,7 @@ import AdminLayout from './admin/components/AdminLayout'
 import AdminReservationsPage from './admin/pages/AdminReservationsPage'
 import MyReservationPage from './booking/pages/MyReservationPage'
 import AdminWaitersPage from './admin/pages/AdminWaitersPage'
+import MyShiftsPage from './staff/pages/MyShiftsPage'
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
       >
         <Route path="/availability" element={<AvailabilityPage />} />
         <Route path="/records" element={<RecordsPage />} />
+        <Route path="/my-shifts" element={<MyShiftsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/booking" replace />} />

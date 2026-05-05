@@ -7,6 +7,7 @@ import { formatDate } from '../../utils/formatDate'
 import { getErrorMessage } from '../../utils/getErrorMessage'
 import { formatTime } from '../../utils/formatTime'
 import Modal from '../../shared/components/Modal'
+import './SlotFormModal.css'
 
 function EditSlotModal({ record, timeSlots, onClose, onSaved }) {
   const [startTime, setStartTime] = useState(formatTime(record?.start_time) ?? '')

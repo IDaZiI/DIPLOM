@@ -49,7 +49,7 @@ function AdminNavbar() {
               isActive ? 'nav-link nav-link-active' : 'nav-link'
             }
           >
-            Официанты
+            Сотрудники
           </NavLink>
 
           <button className="btn btn-secondary" onClick={handleLogout}>
