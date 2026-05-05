@@ -1,0 +1,413 @@
+:root {
+  --admin-bg: #f3f6fb;
+  --admin-surface: #ffffff;
+  --admin-surface-soft: #f8fbff;
+  --admin-surface-muted: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-border-strong: #cfd8e3;
+
+  --admin-text: #0f172a;
+  --admin-text-soft: #334155;
+  --admin-muted: #64748b;
+
+  --admin-blue: #2563eb;
+  --admin-blue-dark: #1d4ed8;
+  --admin-blue-soft: #dbeafe;
+
+  --admin-green-soft: #dcfce7;
+  --admin-green: #166534;
+
+  --admin-red-soft: #fee2e2;
+  --admin-red: #b91c1c;
+  --admin-red-main: #ef4444;
+  --admin-red-hover: #dc2626;
+
+  --admin-radius-xl: 28px;
+  --admin-radius-lg: 24px;
+  --admin-radius-md: 20px;
+  --admin-radius-sm: 14px;
+
+  --admin-shadow: 0 14px 36px rgba(15, 23, 42, 0.055);
+  --admin-shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.045);
+  --admin-shadow-blue: 0 8px 18px rgba(37, 99, 235, 0.16);
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-main {
+  color: var(--admin-text);
+}
+
+.admin-page {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.admin-page-hero {
+  padding: 28px 32px;
+  border-radius: var(--admin-radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.12), transparent 36%),
+    linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-page-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: var(--admin-blue-soft);
+  color: var(--admin-blue-dark);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.admin-page-title {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: clamp(32px, 4vw, 42px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.admin-page-description {
+  margin: 12px 0 0;
+  max-width: 780px;
+  color: var(--admin-muted);
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.admin-section-title {
+  margin: 0 0 18px;
+  color: var(--admin-text);
+  font-size: 28px;
+  line-height: 1.18;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.admin-subtitle {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.admin-card {
+  padding: 24px;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-layout label {
+  color: var(--admin-text);
+  font-weight: 600;
+}
+
+.admin-layout input,
+.admin-layout select,
+.admin-layout textarea {
+  font: inherit;
+  color: var(--admin-text);
+}
+
+.admin-layout input::placeholder,
+.admin-layout textarea::placeholder {
+  color: #94a3b8;
+}
+
+.admin-input,
+.admin-layout input:not([type='checkbox']),
+.admin-layout select,
+.admin-layout textarea {
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-sm);
+  background: #ffffff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-layout textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.admin-input:focus,
+.admin-layout input:not([type='checkbox']):focus,
+.admin-layout select:focus,
+.admin-layout textarea:focus {
+  outline: none;
+  border-color: var(--admin-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.admin-btn,
+.btn,
+.table-list-btn,
+.logout-btn {
+  min-height: 44px;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  padding: 0 18px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1;
+  transition: background 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.admin-btn:disabled,
+.btn:disabled,
+.table-list-btn:disabled,
+.logout-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.admin-btn.primary,
+.btn-primary,
+.btn.btn-primary {
+  background: var(--admin-blue);
+  color: #ffffff;
+  box-shadow: var(--admin-shadow-blue);
+}
+
+.admin-btn.primary:hover,
+.btn-primary:hover,
+.btn.btn-primary:hover {
+  background: var(--admin-blue-dark);
+}
+
+.admin-btn.secondary,
+.btn-secondary,
+.btn.btn-secondary,
+.table-list-btn {
+  background: #e8edf5;
+  color: var(--admin-text);
+}
+
+.admin-btn.secondary:hover,
+.btn-secondary:hover,
+.btn.btn-secondary:hover,
+.table-list-btn:hover {
+  background: #dbe3ee;
+}
+
+.admin-btn.danger,
+.btn-danger,
+.btn.btn-danger,
+.table-list-btn.delete {
+  background: var(--admin-red-main);
+  color: #ffffff;
+}
+
+.admin-btn.danger:hover,
+.btn-danger:hover,
+.btn.btn-danger:hover,
+.table-list-btn.delete:hover {
+  background: var(--admin-red-hover);
+}
+
+.admin-message {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.admin-message.success {
+  background: var(--admin-green-soft);
+  color: var(--admin-green);
+  border: 1px solid #86efac;
+}
+
+.admin-message.error {
+  background: var(--admin-red-soft);
+  color: var(--admin-red);
+  border: 1px solid #fca5a5;
+}
+
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.admin-pill.blue {
+  background: var(--admin-blue-soft);
+  color: var(--admin-blue-dark);
+}
+
+.admin-pill.green {
+  background: var(--admin-green-soft);
+  color: var(--admin-green);
+}
+
+.admin-pill.red {
+  background: var(--admin-red-soft);
+  color: var(--admin-red);
+}
+
+.admin-empty-state {
+  margin: 0;
+  padding: 24px;
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface);
+  border: 1px dashed var(--admin-border-strong);
+  color: var(--admin-muted);
+  text-align: center;
+}
+
+/* Админская версия общего navbar: не ломает shared navbar.css, а только мягко переопределяет его внутри админ-модуля */
+.admin-layout .navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: none;
+}
+
+.admin-layout .navbar-inner {
+  max-width: 1440px;
+  min-height: 88px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.admin-layout .navbar-brand {
+  color: var(--admin-text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.admin-layout .navbar-links {
+  gap: 12px;
+}
+
+.admin-layout .nav-link {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 16px;
+  color: #1f2937;
+  font-weight: 600;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.admin-layout .nav-link:hover {
+  background: #eff6ff;
+  color: var(--admin-blue-dark);
+}
+
+.admin-layout .nav-link-active {
+  background: var(--admin-blue-soft);
+  color: var(--admin-blue-dark);
+}
+
+.admin-layout .navbar .btn-secondary {
+  min-height: 48px;
+  border-radius: 16px;
+  background: #e5e7eb;
+  color: var(--admin-text);
+}
+
+.admin-layout .navbar .btn-secondary:hover {
+  background: #dbe3ee;
+}
+
+.admin-btn.success,
+.btn-success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.admin-btn.success:hover,
+.btn-success:hover {
+  background: #15803d;
+}
+
+.table-list-card:hover,
+.reservation-card:hover,
+.settings-feature-card:hover,
+.waiter-item:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+}
+
+.empty-state {
+  padding: 24px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.admin-break-text {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .admin-layout .navbar-inner {
+    min-height: auto;
+    padding: 16px 18px;
+    align-items: flex-start;
+  }
+
+  .admin-layout .navbar-links {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-page {
+    padding: 20px 14px 40px;
+  }
+
+  .admin-page-hero {
+    padding: 22px;
+    border-radius: var(--admin-radius-md);
+  }
+
+  .admin-page-title {
+    font-size: 32px;
+  }
+
+  .admin-page-description {
+    font-size: 16px;
+  }
+
+  .admin-section-title {
+    font-size: 24px;
+  }
+
+  .admin-card {
+    padding: 20px;
+    border-radius: var(--admin-radius-md);
+  }
+}

@@ -157,35 +157,50 @@ export default function TableForm({
         />
       </div>
 
-      <div className="table-form-row full">
-        <label>Характеристики столика</label>
-        <div className="feature-list">
+      <div className="table-form-row full table-form-features">
+        <span className="table-form-section-label">Характеристики столика</span>
+
+        <div className="table-form-chip-list">
           {features.length ? (
-            features.map((feature) => (
-              <label key={feature.id} className="feature-item">
-                <input
-                  type="checkbox"
-                  checked={formData.features.includes(feature.id)}
-                  onChange={() => handleFeatureChange(feature.id)}
-                />
-                {feature.name}
-              </label>
-            ))
+            features.map((feature) => {
+              const isSelected = formData.features.includes(feature.id)
+
+              return (
+                <label
+                  key={feature.id}
+                  className={`table-form-chip ${isSelected ? 'selected' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => handleFeatureChange(feature.id)}
+                    className="table-form-chip-input"
+                  />
+                  <span className="table-form-chip-text">{feature.name}</span>
+                </label>
+              )
+            })
           ) : (
             <p className="feature-empty">Характеристики пока не добавлены.</p>
           )}
         </div>
       </div>
 
-      <label htmlFor="is_active" className="table-form-checkbox">
+      <label
+        htmlFor="is_active"
+        className={`table-form-toggle ${formData.is_active ? 'checked' : ''}`}
+      >
         <input
           id="is_active"
           type="checkbox"
           name="is_active"
           checked={formData.is_active}
           onChange={handleChange}
+          className="table-form-toggle-input"
         />
-        Активен
+
+        <span className="table-form-toggle-switch" />
+        <span className="table-form-toggle-text">Активен</span>
       </label>
 
       <div className="table-form-actions">

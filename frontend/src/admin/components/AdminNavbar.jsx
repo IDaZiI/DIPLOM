@@ -11,11 +11,11 @@ function AdminNavbar() {
   }
 
   return (
-    <nav className="navbar">
-      <div className="navbar-inner">
-        <div className="navbar-brand">Админ-панель</div>
+    <nav className="navbar admin-navbar">
+      <div className="navbar-inner admin-navbar-inner">
+        <div className="navbar-brand admin-navbar-brand">Админ-панель</div>
 
-        <div className="navbar-links">
+        <div className="navbar-links admin-navbar-links">
           <NavLink
             to="/admin/tables"
             className={({ isActive }) =>

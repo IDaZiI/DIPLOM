@@ -1,17 +1,5 @@
-.admin-waiters-page h1 {
-  margin: 0 0 8px;
-  font-size: 40px;
-  color: #0f172a;
-}
-
-.admin-waiters-header {
-  margin-bottom: 24px;
-}
-
-.admin-waiters-header p {
-  margin: 0;
-  color: #64748b;
-  max-width: 720px;
+.admin-waiters-page {
+  gap: 24px;
 }
 
 .admin-waiters-layout {
@@ -29,36 +17,25 @@
 
 .waiter-form h2,
 .waiters-list-card h2 {
-  margin: 0 0 8px;
-  color: #0f172a;
+  margin: 0 0 18px;
+  color: var(--admin-text);
+  font-size: 28px;
+  line-height: 1.18;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
-.waiter-form label {
+.waiter-form label,
+.waiter-edit-form label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.waiter-form input {
-  padding: 11px 12px;
-  border: 1px solid #d0d7de;
-  border-radius: 10px;
-  background: #ffffff;
-  font: inherit;
-}
-
-.waiter-form input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  gap: 8px;
 }
 
 .waiters-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .waiter-item {
@@ -66,25 +43,51 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #f8fafc;
+  padding: 18px 20px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.waiter-item:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.07);
+}
+
+.waiter-item strong {
+  font-weight: 600;
 }
 
 .waiter-item p {
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--admin-muted);
+  line-height: 1.45;
+}
+
+.waiter-role,
+.waiter-status {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1;
 }
 
 .waiter-role {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-weight: 700;
-  font-size: 14px;
+  background: var(--admin-blue-soft);
+  color: var(--admin-blue-dark);
+}
+
+.waiter-status.active {
+  background: var(--admin-green-soft);
+  color: var(--admin-green);
+}
+
+.waiter-status.inactive {
+  background: var(--admin-red-soft);
+  color: #991b1b;
 }
 
 .waiter-actions {
@@ -95,24 +98,6 @@
   justify-content: flex-end;
 }
 
-.waiter-status {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.waiter-status.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.waiter-status.inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
 .waiter-edit-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(140px, 1fr));
@@ -120,45 +105,55 @@
   flex: 1;
 }
 
-.waiter-edit-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.waiter-edit-form input {
-  padding: 10px 12px;
-  border: 1px solid #d0d7de;
-  border-radius: 10px;
-  background: #ffffff;
-  font: inherit;
-}
-
-.waiter-edit-form input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-
 .waiter-login-hint {
   grid-column: 1 / -1;
   margin: 0;
-  color: #64748b;
+  color: var(--admin-muted);
+}
+
+.waiter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.waiter-edit-btn {
+  background: #eaf1ff;
+  color: #1d4ed8;
+}
+
+.waiter-edit-btn:hover {
+  background: #dbeafe;
+}
+
+.waiter-toggle-btn {
+  min-width: 170px;
+}
+
+@media (max-width: 768px) {
+  .waiter-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .waiter-actions .admin-btn {
+    width: 100%;
+  }
 }
 
 @media (max-width: 900px) {
   .admin-waiters-layout {
     grid-template-columns: 1fr;
   }
+
+  .waiter-edit-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
-  .admin-waiters-page h1 {
-    font-size: 32px;
-  }
-
   .waiter-item {
     align-items: flex-start;
     flex-direction: column;
@@ -169,6 +164,11 @@
   }
 
   .waiter-actions {
-    justify-content: flex-start;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .waiter-actions .admin-btn {
+    flex: 1 1 100%;
   }
 }

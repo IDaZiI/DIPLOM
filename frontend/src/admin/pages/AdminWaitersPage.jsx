@@ -211,23 +211,24 @@ export default function AdminWaitersPage() {
   }
 
   return (
-    <div className="admin-waiters-page">
-      <div className="admin-waiters-header">
-        <div>
-          <h1>Сотрудники</h1>
-          <p>
-            Создание и редактирование учётных записей сотрудников, которые смогут
-            входить в систему и указывать свою доступность для работы.
-          </p>
-        </div>
-      </div>
+    <div className="admin-page admin-waiters-page">
+      <section className="admin-page-hero">
+        <span className="admin-page-badge">Панель администратора</span>
+
+        <h1 className="admin-page-title">Сотрудники</h1>
+
+        <p className="admin-page-description">
+          Создавайте и редактируйте учётные записи сотрудников, которые смогут
+          входить в систему и указывать свою доступность для работы.
+        </p>
+      </section>
 
       {error && <p className="admin-message error">{error}</p>}
       {successMessage && <p className="admin-message success">{successMessage}</p>}
 
       <div className="admin-waiters-layout">
         <form className="waiter-form admin-card" onSubmit={handleSubmit}>
-          <h2>Новый сотрудник</h2>
+          <h2 className="admin-section-title">Новый сотрудник</h2>
 
           <label>
             Логин
@@ -296,7 +297,7 @@ export default function AdminWaitersPage() {
         </form>
 
         <section className="admin-card waiters-list-card">
-          <h2>Список сотрудников</h2>
+          <h2 className="admin-section-title">Список сотрудников</h2>
 
           {loading ? (
             <p>Загрузка сотрудников...</p>
@@ -385,7 +386,7 @@ export default function AdminWaitersPage() {
                         <>
                           <button
                             type="button"
-                            className="admin-btn secondary"
+                            className="admin-btn secondary waiter-edit-btn"
                             onClick={() => handleStartEdit(employee)}
                             disabled={updatingId === employee.id}
                           >
@@ -394,7 +395,11 @@ export default function AdminWaitersPage() {
 
                           <button
                             type="button"
-                            className={employee.is_active ? 'admin-btn secondary' : 'admin-btn primary'}
+                            className={
+                              employee.is_active
+                                ? 'admin-btn danger waiter-toggle-btn'
+                                : 'admin-btn success waiter-toggle-btn'
+                            }
                             onClick={() => handleToggleEmployeeStatus(employee)}
                             disabled={updatingId === employee.id}
                           >

@@ -215,11 +215,14 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="admin-settings-page">
-      <div className="settings-hero">
+    <div className="admin-page admin-settings-page">
+      <section className="admin-page-hero settings-hero">
         <div>
-          <h1>Настройки бронирования</h1>
-          <p>
+          <span className="admin-page-badge">Панель администратора</span>
+
+          <h1 className="admin-page-title">Настройки бронирования</h1>
+
+          <p className="admin-page-description">
             Управляйте правилами онлайн-бронирования, ограничениями доступности
             столиков и характеристиками, которые видит клиент.
           </p>
@@ -231,7 +234,7 @@ export default function AdminSettingsPage() {
             ? 'Онлайн-бронирование включено'
             : 'Онлайн-бронирование отключено'}
         </div>
-      </div>
+      </section>
 
       {error && <p className="admin-message error">{error}</p>}
       {successMessage && <p className="admin-message success">{successMessage}</p>}

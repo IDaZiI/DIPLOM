@@ -235,8 +235,16 @@ const getBackendErrorMessage = (err, fallbackMessage) => {
   }
 
   return (
-    <div className="admin-reservations-page">
-      <h1>Бронирования</h1>
+    <div className="admin-page admin-reservations-page">
+      <section className="admin-page-hero">
+        <span className="admin-page-badge">Панель администратора</span>
+
+        <h1 className="admin-page-title">Бронирования</h1>
+
+        <p className="admin-page-description">
+          Просматривайте бронирования гостей, меняйте их статус и создавайте новые записи.
+        </p>
+      </section>
 
       {error && <p className="admin-message error">{error}</p>}
       {successMessage && <p className="admin-message success">{successMessage}</p>}
@@ -331,7 +339,7 @@ const getBackendErrorMessage = (err, fallbackMessage) => {
       {isCreateFormOpen && (
         <form className="reservation-create-form" onSubmit={handleCreateReservation}>
           <div className="reservation-create-form-header">
-            <h2>Создание бронирования</h2>
+            <h2 className="admin-section-title">Создание бронирования</h2>
 
             <button
               type="button"
@@ -476,45 +484,60 @@ const getBackendErrorMessage = (err, fallbackMessage) => {
         <div className="reservations-grid">
           {reservations.map((reservation) => (
             <div key={reservation.id} className="reservation-card">
-              <p><strong>Клиент:</strong> {reservation.client_name}</p>
-              <p><strong>Телефон:</strong> {reservation.client_phone}</p>
+              <div className="reservation-card-header">
+                <div>
+                  <h3 className="reservation-card-title">{reservation.client_name}</h3>
+                  <p className="reservation-card-subtitle">
+                    {reservation.reservation_date} · {formatTime(reservation.start_time)} – {formatTime(reservation.end_time)}
+                  </p>
+                </div>
 
-              {reservation.client_email && (
-                <p><strong>Email:</strong> {reservation.client_email}</p>
-              )}
-
-              <p>
-                <strong>Столик:</strong>{' '}
-                №{reservation.table_details?.number || reservation.table}
-                {reservation.table_details?.capacity
-                  ? `, ${reservation.table_details.capacity} мест`
-                  : ''}
-              </p>
-
-              <p><strong>Гостей:</strong> {reservation.guest_count}</p>
-              <p><strong>Дата:</strong> {reservation.reservation_date}</p>
-
-              <p>
-                <strong>Время:</strong>{' '}
-                {formatTime(reservation.start_time)} – {formatTime(reservation.end_time)}
-              </p>
-
-              {reservation.comment && (
-                <p><strong>Комментарий:</strong> {reservation.comment}</p>
-              )}
-
-              <p>
-                <strong>Статус:</strong>{' '}
                 <span className={`reservation-status ${reservation.status}`}>
                   {statusLabels[reservation.status] || reservation.status}
                 </span>
-              </p>
+              </div>
+
+              <div className="reservation-card-grid">
+                <div className="reservation-card-item">
+                  <span>Телефон</span>
+                  <strong>{reservation.client_phone}</strong>
+                </div>
+
+                {reservation.client_email && (
+                  <div className="reservation-card-item">
+                    <span>Email</span>
+                    <strong>{reservation.client_email}</strong>
+                  </div>
+                )}
+
+                <div className="reservation-card-item">
+                  <span>Столик</span>
+                  <strong>
+                    №{reservation.table_details?.number || reservation.table}
+                    {reservation.table_details?.capacity
+                      ? `, ${reservation.table_details.capacity} мест`
+                      : ''}
+                  </strong>
+                </div>
+
+                <div className="reservation-card-item">
+                  <span>Гостей</span>
+                  <strong>{reservation.guest_count}</strong>
+                </div>
+              </div>
+
+              {reservation.comment && (
+                <div className="reservation-comment">
+                  <span>Комментарий</span>
+                  <p>{reservation.comment}</p>
+                </div>
+              )}
 
               <div className="reservation-actions">
                 {reservation.status === 'active' && (
                   <button
                     type="button"
-                    className="table-list-btn delete"
+                    className="btn btn-danger"
                     disabled={updatingId === reservation.id}
                     onClick={() => handleStatusChange(reservation, 'cancelled')}
                   >
@@ -525,7 +548,7 @@ const getBackendErrorMessage = (err, fallbackMessage) => {
                 {reservation.status === 'cancelled' && (
                   <button
                     type="button"
-                    className="admin-btn primary"
+                    className="btn btn-primary"
                     disabled={updatingId === reservation.id}
                     onClick={() => handleStatusChange(reservation, 'active')}
                   >

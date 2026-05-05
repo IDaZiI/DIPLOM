@@ -282,10 +282,16 @@ export default function AdminTablesPage() {
   }
 
   return (
-    <div className="admin-tables-page">
-      <div className="admin-page-header">
-        <h1>Управление столиками</h1>
-      </div>
+    <div className="admin-page admin-tables-page">
+      <section className="admin-page-hero">
+        <span className="admin-page-badge">Панель администратора</span>
+
+        <h1 className="admin-page-title">Управление столиками</h1>
+
+        <p className="admin-page-description">
+          Создавайте столики, загружайте схему зала и размещайте столики на карте.
+        </p>
+      </section>
 
       {error && <p className="admin-message error">{error}</p>}
       {successMessage && <p className="admin-message success">{successMessage}</p>}
@@ -315,7 +321,7 @@ export default function AdminTablesPage() {
 
       {!loading && (
         <div className="tables-list-section">
-          <h2>Список столиков</h2>
+          <h2 className="admin-section-title">Список столиков</h2>
 
           <TablesList
             tables={tables}

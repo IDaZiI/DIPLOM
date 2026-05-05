@@ -17,7 +17,7 @@ export default function TableFormModal({
       title={selectedTable ? 'Редактирование столика' : 'Добавление столика'}
       onClose={onClose}
       isLoading={loading}
-      maxWidth={760}
+      maxWidth={860}
     >
       <TableForm
         key={
