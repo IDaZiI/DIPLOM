@@ -3,7 +3,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.exceptions import ValidationError
 
 from .services import (
     get_booking_settings,
@@ -12,9 +11,17 @@ from .services import (
     validate_online_booking_rules,
     get_busy_tables_for_interval,
     get_remaining_online_slots,
+    is_reservation_finished,
 )
 
-from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
+from .models import (
+    RestaurantTable,
+    Reservation,
+    TableFeature,
+    BookingSettings,
+    HallScheme,
+)
+
 from .serializers import (
     RestaurantTableSerializer,
     ReservationSerializer,
@@ -23,7 +30,9 @@ from .serializers import (
     HallSchemeSerializer,
     ClientReservationSerializer,
 )
+
 from .permissions import IsAdminUserRole
+
 
 class TableFeatureListView(generics.ListCreateAPIView):
     queryset = TableFeature.objects.all()
@@ -66,6 +75,7 @@ class TableDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         instance.delete()
 
+
 class AvailableTablesView(generics.ListAPIView):
     serializer_class = RestaurantTableSerializer
     permission_classes = [AllowAny]
@@ -74,7 +84,6 @@ class AvailableTablesView(generics.ListAPIView):
         date_param = self.request.query_params.get('date')
         start_time_param = self.request.query_params.get('start_time')
         guest_count = self.request.query_params.get('guest_count')
-        feature_id = self.request.query_params.get('feature')
 
         settings_obj = get_booking_settings()
 
@@ -94,9 +103,6 @@ class AvailableTablesView(generics.ListAPIView):
 
         if guest_count:
             queryset = queryset.filter(capacity__gte=int(guest_count))
-
-        if feature_id:
-            queryset = queryset.filter(features__id=feature_id)
 
         busy_tables = get_busy_tables_for_interval(
             reservation_date,
@@ -119,10 +125,12 @@ class AvailableTablesView(generics.ListAPIView):
 
         return queryset[:remaining_online_slots]
 
+
 class ReservationCreateView(generics.CreateAPIView):
     queryset = Reservation.objects.all()
     serializer_class = ClientReservationSerializer
     permission_classes = [AllowAny]
+
 
 class ReservationListView(generics.ListCreateAPIView):
     serializer_class = ReservationSerializer
@@ -134,15 +142,15 @@ class ReservationListView(generics.ListCreateAPIView):
             'start_time'
         )
 
-        status = self.request.query_params.get('status')
-        date = self.request.query_params.get('date')
+        reservation_status = self.request.query_params.get('status')
+        reservation_date = self.request.query_params.get('date')
         table = self.request.query_params.get('table')
 
-        if status:
-            queryset = queryset.filter(status=status)
+        if reservation_status:
+            queryset = queryset.filter(status=reservation_status)
 
-        if date:
-            queryset = queryset.filter(reservation_date=date)
+        if reservation_date:
+            queryset = queryset.filter(reservation_date=reservation_date)
 
         if table:
             queryset = queryset.filter(table_id=table)
@@ -155,6 +163,7 @@ class ReservationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ReservationSerializer
     permission_classes = [IsAdminUserRole]
 
+
 class BookingSettingsView(generics.RetrieveUpdateAPIView):
     serializer_class = BookingSettingsSerializer
     permission_classes = [IsAdminUserRole]
@@ -164,15 +173,20 @@ class BookingSettingsView(generics.RetrieveUpdateAPIView):
             pk=1,
             defaults={
                 'online_booking_enabled': True,
+                'booking_start_time': '10:00',
+                'booking_end_time': '22:00',
+                'reservation_duration_minutes': 120,
+                'min_time_before_booking_minutes': 60,
+                'max_days_ahead': 30,
                 'online_booking_percent': 100,
                 'reserved_for_walkin_count': 0,
             }
         )
         return settings_obj
-    
+
 
 class ClientReservationLookupView(APIView):
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request):
         booking_code = request.data.get('booking_code')
@@ -200,7 +214,7 @@ class ClientReservationLookupView(APIView):
 
 
 class ClientReservationCancelView(APIView):
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def post(self, request):
         booking_code = request.data.get('booking_code')
@@ -229,12 +243,19 @@ class ClientReservationCancelView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if is_reservation_finished(reservation):
+            return Response(
+                {'detail': 'Нельзя отменить завершённое бронирование.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         reservation.status = 'cancelled'
         reservation.save(update_fields=['status'])
 
         serializer = ReservationSerializer(reservation)
-        return Response(serializer.data)
-    
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class HallSchemeView(generics.RetrieveUpdateAPIView):
     serializer_class = HallSchemeSerializer
     permission_classes = [IsAdminUserRole]
@@ -256,10 +277,11 @@ class HallSchemeView(generics.RetrieveUpdateAPIView):
             {'detail': 'Схема зала удалена.'},
             status=status.HTTP_200_OK
         )
-    
+
+
 class PublicHallSchemeView(generics.RetrieveAPIView):
     serializer_class = HallSchemeSerializer
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def get_object(self):
         obj, created = HallScheme.objects.get_or_create(pk=1)

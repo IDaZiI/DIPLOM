@@ -149,3 +149,14 @@ def get_remaining_online_slots(reservation_date, start_time, end_time):
     ).count()
 
     return max(0, allowed_online_tables - busy_count)
+
+def is_reservation_finished(reservation):
+    reservation_end_datetime = timezone.make_aware(
+        datetime.combine(
+            reservation.reservation_date,
+            reservation.end_time
+        ),
+        timezone.get_current_timezone()
+    )
+
+    return reservation_end_datetime < timezone.now()

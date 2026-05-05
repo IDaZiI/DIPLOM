@@ -2,6 +2,12 @@ from django.utils.text import slugify
 from rest_framework import serializers
 from django.utils import timezone
 from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
+from .services import (
+    get_booking_settings,
+    validate_online_booking_rules,
+    get_remaining_online_slots,
+    is_reservation_finished,
+)
 
 from .services import (
     get_booking_settings,
@@ -133,9 +139,9 @@ class RestaurantTableSerializer(serializers.ModelSerializer):
 
         return attrs
 
-
 class ReservationSerializer(serializers.ModelSerializer):
     table_details = RestaurantTableSerializer(source='table', read_only=True)
+
     class Meta:
         model = Reservation
         fields = '__all__'
@@ -167,6 +173,18 @@ class ReservationSerializer(serializers.ModelSerializer):
             'status',
             instance.status if instance else 'active'
         )
+
+        old_status = instance.status if instance else None
+
+        if instance and old_status == 'cancelled' and status == 'cancelled':
+            raise serializers.ValidationError(
+                'Это бронирование уже отменено.'
+            )
+
+        if instance and status == 'cancelled' and is_reservation_finished(instance):
+            raise serializers.ValidationError(
+                'Нельзя отменить завершённое бронирование.'
+            )
 
         if reservation_date and reservation_date < timezone.localdate():
             raise serializers.ValidationError(
@@ -209,7 +227,7 @@ class ReservationSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
-    
+
 class ClientReservationSerializer(ReservationSerializer):
     class Meta:
         model = Reservation
@@ -233,14 +251,10 @@ class ClientReservationSerializer(ReservationSerializer):
         guest_count = attrs.get('guest_count')
 
         if not reservation_date:
-            raise serializers.ValidationError(
-                'Укажите дату бронирования.'
-            )
+            raise serializers.ValidationError('Укажите дату бронирования.')
 
         if not start_time:
-            raise serializers.ValidationError(
-                'Укажите время начала бронирования.'
-            )
+            raise serializers.ValidationError('Укажите время начала бронирования.')
 
         end_time = validate_online_booking_rules(
             reservation_date,

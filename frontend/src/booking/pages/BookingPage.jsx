@@ -3,54 +3,96 @@ import { Link } from 'react-router-dom'
 import BookingSearchForm from '../components/BookingSearchForm'
 import AvailableTablesList from '../components/AvailableTablesList'
 import ReservationForm from '../components/ReservationForm'
+import ClientHallMap from '../components/ClientHallMap'
 import {
   getAvailableTables,
   createReservation,
   getTableFeatures,
+  getPublicHallScheme,
 } from '../../api/reservations'
 import './BookingPage.css'
 
 const formatTime = (value) => value?.slice(0, 5) || ''
 
+const getBackendErrorMessage = (err, fallbackMessage) => {
+  const backendError = err.response?.data
+
+  if (typeof backendError === 'string') {
+    return backendError
+  }
+
+  if (backendError?.detail) {
+    return backendError.detail
+  }
+
+  if (backendError?.non_field_errors) {
+    return backendError.non_field_errors.join(' ')
+  }
+
+  if (backendError && typeof backendError === 'object') {
+    const messages = Object.values(backendError).flat().filter(Boolean)
+
+    if (messages.length) {
+      return messages.join(' ')
+    }
+  }
+
+  return fallbackMessage
+}
+
 export default function BookingPage() {
   const [searchData, setSearchData] = useState(null)
   const [tables, setTables] = useState([])
   const [features, setFeatures] = useState([])
+  const [hallScheme, setHallScheme] = useState(null)
   const [selectedTable, setSelectedTable] = useState(null)
   const [createdReservation, setCreatedReservation] = useState(null)
+  const [viewMode, setViewMode] = useState('map')
   const [loading, setLoading] = useState(false)
   const [reservationLoading, setReservationLoading] = useState(false)
   const [error, setError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
-    const loadFeatures = async () => {
+    const loadInitialData = async () => {
       try {
-        const data = await getTableFeatures()
-        setFeatures(data)
+        const [featuresData, hallSchemeData] = await Promise.all([
+          getTableFeatures(),
+          getPublicHallScheme(),
+        ])
+
+        setFeatures(featuresData)
+        setHallScheme(hallSchemeData)
       } catch (err) {
         console.error(err)
       }
     }
 
-    loadFeatures()
+    loadInitialData()
   }, [])
 
   const handleSearch = async (formData) => {
     setLoading(true)
     setError('')
-    setSuccessMessage('')
     setSelectedTable(null)
     setCreatedReservation(null)
 
     try {
-      const data = await getAvailableTables(formData)
+      const searchParams = {
+        date: formData.date,
+        start_time: formData.start_time,
+        guest_count: formData.guest_count,
+      }
+
+      const data = await getAvailableTables(searchParams)
+
       setTables(data)
       setSearchData(formData)
+      setViewMode(hallScheme?.image_url ? 'map' : 'list')
     } catch (err) {
       console.error(err)
-      setError('Не удалось загрузить доступные столики.')
+      setError(getBackendErrorMessage(err, 'Не удалось загрузить доступные столики.'))
       setTables([])
+      setSearchData(formData)
     } finally {
       setLoading(false)
     }
@@ -58,7 +100,6 @@ export default function BookingPage() {
 
   const handleSelectTable = (table) => {
     setSelectedTable(table)
-    setSuccessMessage('')
     setError('')
     setCreatedReservation(null)
   }
@@ -66,20 +107,18 @@ export default function BookingPage() {
   const handleReservationSubmit = async (reservationData) => {
     setReservationLoading(true)
     setError('')
-    setSuccessMessage('')
     setCreatedReservation(null)
 
     try {
       const created = await createReservation(reservationData)
 
       setCreatedReservation(created)
-      setSuccessMessage('Бронирование успешно создано.')
       setSelectedTable(null)
       setTables([])
       setSearchData(null)
     } catch (err) {
       console.error(err)
-      setError('Не удалось создать бронирование.')
+      setError(getBackendErrorMessage(err, 'Не удалось создать бронирование.'))
     } finally {
       setReservationLoading(false)
     }
@@ -87,13 +126,20 @@ export default function BookingPage() {
 
   return (
     <div className="booking-page">
-      <div className="booking-page-header">
-        <h1>Бронирование столика</h1>
+      <section className="booking-hero">
+        <div>
+          <span className="booking-kicker">Онлайн-бронирование</span>
+          <h1>Забронируйте столик</h1>
+          <p>
+            Выберите дату и время визита, посмотрите свободные столики на схеме
+            зала и оформите бронирование без регистрации.
+          </p>
+        </div>
 
-        <Link to="/my-reservation" className="btn-primary booking-link-btn">
+        <Link to="/my-reservation" className="btn btn-secondary booking-link-btn">
           Найти моё бронирование
         </Link>
-      </div>
+      </section>
 
       <BookingSearchForm
         onSearch={handleSearch}
@@ -103,10 +149,10 @@ export default function BookingPage() {
 
       {error && <p className="booking-message error">{error}</p>}
 
-      {createdReservation ? (
-        <div className="booking-success-card">
+      {createdReservation && (
+        <section className="booking-success-card">
+          <span className="booking-success-icon">✓</span>
           <h2>Бронирование успешно создано</h2>
-
           <p>Ваш номер бронирования:</p>
 
           <strong className="booking-code">
@@ -142,41 +188,113 @@ export default function BookingPage() {
           <p className="booking-success-note">
             Сохраните номер бронирования. Он понадобится для просмотра или отмены бронирования.
           </p>
-        </div>
-      ) : (
-        successMessage && <p className="booking-message success">{successMessage}</p>
+
+          <Link to="/my-reservation" className="btn btn-primary">
+            Перейти к поиску бронирования
+          </Link>
+        </section>
       )}
 
-      {!loading && tables.length > 0 && (
-        <AvailableTablesList
-          tables={tables}
-          onSelectTable={handleSelectTable}
-        />
+      {!createdReservation && searchData && (
+        <section className="booking-results">
+          <div className="booking-results-header">
+            <div>
+              <span className="booking-step-badge">Шаг 2</span>
+              <h2>Выберите столик</h2>
+              <p>
+                Дата: <strong>{searchData.date}</strong>, время визита:{' '}
+                <strong>{searchData.start_time}</strong>, гостей:{' '}
+                <strong>{searchData.guest_count}</strong>
+              </p>
+            </div>
+
+            {tables.length > 0 && (
+              <div className="booking-view-switch">
+                <button
+                  type="button"
+                  className={viewMode === 'map' ? 'active' : ''}
+                  onClick={() => setViewMode('map')}
+                  disabled={!hallScheme?.image_url}
+                >
+                  Схема
+                </button>
+
+                <button
+                  type="button"
+                  className={viewMode === 'list' ? 'active' : ''}
+                  onClick={() => setViewMode('list')}
+                >
+                  Список
+                </button>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="booking-empty-state">
+              <h3>Ищем свободные столики...</h3>
+              <p>Проверяем доступность на выбранные дату и время.</p>
+            </div>
+          ) : tables.length > 0 ? (
+            <>
+              {viewMode === 'map' && (
+                <ClientHallMap
+                  tables={tables}
+                  hallScheme={hallScheme}
+                  selectedTableId={selectedTable?.id}
+                  selectedFeatureIds={searchData?.features || []}
+                  onSelectTable={handleSelectTable}
+                />
+              )}
+
+              {viewMode === 'list' && (
+                <AvailableTablesList
+                  tables={tables}
+                  selectedTableId={selectedTable?.id}
+                  selectedFeatureIds={searchData?.features || []}
+                  onSelectTable={handleSelectTable}
+                />
+              )}
+            </>
+          ) : (
+            <div className="booking-empty-state">
+              <h3>Свободные столики не найдены</h3>
+              <p>Попробуйте выбрать другое время, дату или изменить пожелания к столику.</p>
+            </div>
+          )}
+        </section>
       )}
 
-      {!loading && searchData && tables.length === 0 && !error && !successMessage && !createdReservation && (
-        <p>Свободные столики не найдены.</p>
-      )}
+      {selectedTable && searchData && !createdReservation && (
+        <section className="selected-table-info">
+          <div className="selected-table-summary">
+            <div>
+              <span className="booking-step-badge">Выбранный столик</span>
+              <h2>Столик №{selectedTable.number}</h2>
+              <p>
+                {selectedTable.capacity} мест · {searchData.date} · начало в {searchData.start_time}
+              </p>
+              <p className="selected-table-note">
+                Время окончания бронирования система рассчитает автоматически.
+              </p>
+            </div>
 
-      {selectedTable && searchData && (
-        <div className="selected-table-info">
-          <h2>Выбранный столик</h2>
-          <p><strong>Номер:</strong> {selectedTable.number}</p>
-          <p><strong>Вместимость:</strong> {selectedTable.capacity}</p>
-          <p><strong>Дата:</strong> {searchData.date}</p>
-          <p><strong>Время:</strong> {searchData.start_time} - {searchData.end_time}</p>
-          <p><strong>Гостей:</strong> {searchData.guest_count}</p>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setSelectedTable(null)}
+            >
+              Выбрать другой
+            </button>
+          </div>
 
           {selectedTable.features_details?.length > 0 && (
-            <div className="selected-table-features">
-              <strong>Особенности:</strong>
-              <div className="feature-tags">
-                {selectedTable.features_details.map((feature) => (
-                  <span key={feature.id} className="feature-tag">
-                    {feature.name}
-                  </span>
-                ))}
-              </div>
+            <div className="feature-tags selected-table-tags">
+              {selectedTable.features_details.map((feature) => (
+                <span key={feature.id} className="feature-tag">
+                  {feature.name}
+                </span>
+              ))}
             </div>
           )}
 
@@ -186,7 +304,7 @@ export default function BookingPage() {
             onSubmit={handleReservationSubmit}
             loading={reservationLoading}
           />
-        </div>
+        </section>
       )}
     </div>
   )

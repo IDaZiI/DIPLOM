@@ -13,81 +13,89 @@ export default function ReservationForm({
     comment: '',
   })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
+  const handleChange = (event) => {
+    const { name, value } = event.target
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = (event) => {
+    event.preventDefault()
 
     onSubmit({
       table: selectedTable.id,
-      client_name: formData.client_name,
-      client_phone: formData.client_phone,
-      client_email: formData.client_email,
+      client_name: formData.client_name.trim(),
+      client_phone: formData.client_phone.trim(),
+      client_email: formData.client_email.trim(),
       guest_count: Number(searchData.guest_count),
       reservation_date: searchData.date,
       start_time: `${searchData.start_time}:00`,
-      end_time: `${searchData.end_time}:00`,
-      comment: formData.comment,
+      comment: formData.comment.trim(),
     })
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Данные для бронирования</h2>
-
-      <div>
-        <label htmlFor="client_name">Имя</label>
-        <input
-          id="client_name"
-          type="text"
-          name="client_name"
-          value={formData.client_name}
-          onChange={handleChange}
-          required
-        />
+    <form onSubmit={handleSubmit} className="reservation-form">
+      <div className="booking-search-intro">
+        <span className="booking-step-badge">Шаг 3</span>
+        <div>
+          <h2>Контактные данные</h2>
+          <p>Укажите данные, чтобы ресторан мог связаться с вами при необходимости.</p>
+        </div>
       </div>
 
-      <div>
-        <label htmlFor="client_phone">Телефон</label>
-        <input
-          id="client_phone"
-          type="text"
-          name="client_phone"
-          value={formData.client_phone}
-          onChange={handleChange}
-          required
-        />
+      <div className="reservation-form-grid">
+        <label>
+          Имя
+          <input
+            type="text"
+            name="client_name"
+            value={formData.client_name}
+            onChange={handleChange}
+            placeholder="Например: Анна"
+            required
+          />
+        </label>
+
+        <label>
+          Телефон
+          <input
+            type="tel"
+            name="client_phone"
+            value={formData.client_phone}
+            onChange={handleChange}
+            placeholder="Например: 89999999999"
+            required
+          />
+        </label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="client_email"
+            value={formData.client_email}
+            onChange={handleChange}
+            placeholder="name@example.com"
+          />
+        </label>
+
+        <label className="reservation-comment-field">
+          Комментарий
+          <textarea
+            name="comment"
+            value={formData.comment}
+            onChange={handleChange}
+            placeholder="Например: детский стул, день рождения, особые пожелания"
+          />
+        </label>
       </div>
 
-      <div>
-        <label htmlFor="client_email">Email</label>
-        <input
-          id="client_email"
-          type="email"
-          name="client_email"
-          value={formData.client_email}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="comment">Комментарий</label>
-        <textarea
-          id="comment"
-          name="comment"
-          value={formData.comment}
-          onChange={handleChange}
-        />
-      </div>
-
-      <button type="submit" disabled={loading}>
-        {loading ? 'Отправка...' : 'Подтвердить бронь'}
+      <button type="submit" className="btn btn-primary reservation-submit-btn" disabled={loading}>
+        {loading ? 'Создаём бронирование...' : 'Подтвердить бронирование'}
       </button>
     </form>
   )

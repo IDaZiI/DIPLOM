@@ -204,10 +204,9 @@ export default function HallMap({
             }}
             onClick={(event) => handleTableClick(event, table)}
             onMouseDown={(event) => handleMouseDown(event, table)}
-            title={`Столик №${table.number}`}
+            title={`Столик №${table.number}, ${table.capacity} мест`}
           >
             <span className="hall-table-number">{table.number}</span>
-            <span className="hall-table-capacity">{table.capacity} места</span>
           </button>
         ))}
       </div>
