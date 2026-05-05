@@ -3,6 +3,13 @@ from rest_framework import serializers
 from django.utils import timezone
 from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
 
+from .services import (
+    get_booking_settings,
+    calculate_end_time,
+    validate_online_booking_rules,
+    get_remaining_online_slots,
+)
+
 def transliterate_ru(text):
     mapping = {
         'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
@@ -203,15 +210,145 @@ class ReservationSerializer(serializers.ModelSerializer):
 
         return attrs
     
+class ClientReservationSerializer(ReservationSerializer):
+    class Meta:
+        model = Reservation
+        fields = '__all__'
+        read_only_fields = [
+            'status',
+            'end_time',
+            'booking_code',
+            'created_at',
+        ]
+        extra_kwargs = {
+            'end_time': {'required': False},
+        }
+
+    def validate(self, attrs):
+        settings_obj = get_booking_settings()
+
+        reservation_date = attrs.get('reservation_date')
+        start_time = attrs.get('start_time')
+        table = attrs.get('table')
+        guest_count = attrs.get('guest_count')
+
+        if not reservation_date:
+            raise serializers.ValidationError(
+                'Укажите дату бронирования.'
+            )
+
+        if not start_time:
+            raise serializers.ValidationError(
+                'Укажите время начала бронирования.'
+            )
+
+        end_time = validate_online_booking_rules(
+            reservation_date,
+            start_time,
+            settings_obj,
+        )
+
+        attrs['end_time'] = end_time
+        attrs['status'] = 'active'
+
+        if table and guest_count and guest_count > table.capacity:
+            raise serializers.ValidationError(
+                'Количество гостей превышает вместимость выбранного столика.'
+            )
+
+        if table:
+            overlapping_reservations = Reservation.objects.filter(
+                table=table,
+                reservation_date=reservation_date,
+                status='active',
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            )
+
+            if overlapping_reservations.exists():
+                raise serializers.ValidationError(
+                    'Выбранный столик уже занят в указанный временной интервал.'
+                )
+
+        remaining_online_slots = get_remaining_online_slots(
+            reservation_date,
+            start_time,
+            end_time,
+        )
+
+        if remaining_online_slots <= 0:
+            raise serializers.ValidationError(
+                'На выбранное время нет доступных столиков для онлайн-бронирования.'
+            )
+
+        return attrs
+
 class BookingSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingSettings
         fields = '__all__'
 
-    def validate_online_booking_percent(self, value):
-        if value < 0 or value > 100:
-            raise serializers.ValidationError('Процент онлайн-бронирования должен быть от 0 до 100.')
-        return value
+    def validate(self, attrs):
+        booking_start_time = attrs.get(
+            'booking_start_time',
+            self.instance.booking_start_time if self.instance else None
+        )
+        booking_end_time = attrs.get(
+            'booking_end_time',
+            self.instance.booking_end_time if self.instance else None
+        )
+        reservation_duration_minutes = attrs.get(
+            'reservation_duration_minutes',
+            self.instance.reservation_duration_minutes if self.instance else None
+        )
+        min_time_before_booking_minutes = attrs.get(
+            'min_time_before_booking_minutes',
+            self.instance.min_time_before_booking_minutes if self.instance else None
+        )
+        max_days_ahead = attrs.get(
+            'max_days_ahead',
+            self.instance.max_days_ahead if self.instance else None
+        )
+        online_booking_percent = attrs.get(
+            'online_booking_percent',
+            self.instance.online_booking_percent if self.instance else None
+        )
+        reserved_for_walkin_count = attrs.get(
+            'reserved_for_walkin_count',
+            self.instance.reserved_for_walkin_count if self.instance else None
+        )
+
+        if booking_start_time and booking_end_time and booking_start_time >= booking_end_time:
+            raise serializers.ValidationError(
+                'Время начала бронирования должно быть раньше времени окончания.'
+            )
+
+        if reservation_duration_minutes is not None and reservation_duration_minutes <= 0:
+            raise serializers.ValidationError(
+                'Длительность бронирования должна быть больше 0 минут.'
+            )
+
+        if min_time_before_booking_minutes is not None and min_time_before_booking_minutes < 0:
+            raise serializers.ValidationError(
+                'Минимальное время до начала бронирования не может быть отрицательным.'
+            )
+
+        if max_days_ahead is not None and max_days_ahead <= 0:
+            raise serializers.ValidationError(
+                'Максимальный период предварительного бронирования должен быть больше 0 дней.'
+            )
+
+        if online_booking_percent is not None and not 0 <= online_booking_percent <= 100:
+            raise serializers.ValidationError(
+                'Доля столиков для онлайн-бронирования должна быть от 0 до 100.'
+            )
+
+        if reserved_for_walkin_count is not None and reserved_for_walkin_count < 0:
+            raise serializers.ValidationError(
+                'Количество столиков для живой посадки не может быть отрицательным.'
+            )
+
+        return attrs
 
 class HallSchemeSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()

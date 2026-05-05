@@ -99,9 +99,45 @@ class Reservation(models.Model):
     
 
 class BookingSettings(models.Model):
-    online_booking_enabled = models.BooleanField(default=True)
-    online_booking_percent = models.PositiveIntegerField(default=100)
-    reserved_for_walkin_count = models.PositiveIntegerField(default=0)
+    online_booking_enabled = models.BooleanField(
+        default=True,
+        verbose_name='Онлайн-бронирование включено'
+    )
+
+    booking_start_time = models.TimeField(
+        default='10:00',
+        verbose_name='Начало интервала бронирования'
+    )
+
+    booking_end_time = models.TimeField(
+        default='22:00',
+        verbose_name='Конец интервала бронирования'
+    )
+
+    reservation_duration_minutes = models.PositiveIntegerField(
+        default=120,
+        verbose_name='Длительность бронирования в минутах'
+    )
+
+    min_time_before_booking_minutes = models.PositiveIntegerField(
+        default=60,
+        verbose_name='Минимальное время до начала бронирования в минутах'
+    )
+
+    max_days_ahead = models.PositiveIntegerField(
+        default=30,
+        verbose_name='Максимальный период предварительного бронирования в днях'
+    )
+
+    online_booking_percent = models.PositiveIntegerField(
+        default=100,
+        verbose_name='Доля столиков для онлайн-бронирования'
+    )
+
+    reserved_for_walkin_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Количество столиков для живой посадки'
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
 

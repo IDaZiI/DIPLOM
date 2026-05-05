@@ -1,11 +1,12 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from staff.models import User
-from .models import RestaurantTable, Reservation
+from .models import RestaurantTable, Reservation, BookingSettings
 
 
 class ReservationAPITests(APITestCase):
@@ -27,6 +28,32 @@ class ReservationAPITests(APITestCase):
             password='waiterpass123',
             role='waiter'
         )
+
+        self.booking_settings, _ = BookingSettings.objects.get_or_create(
+            pk=1,
+            defaults={
+                'online_booking_enabled': True,
+                'booking_start_time': time(10, 0),
+                'booking_end_time': time(22, 0),
+                'reservation_duration_minutes': 120,
+                'min_time_before_booking_minutes': 0,
+                'max_days_ahead': 30,
+                'online_booking_percent': 100,
+                'reserved_for_walkin_count': 0,
+            }
+        )
+
+        self.booking_settings.online_booking_enabled = True
+        self.booking_settings.booking_start_time = time(10, 0)
+        self.booking_settings.booking_end_time = time(22, 0)
+        self.booking_settings.reservation_duration_minutes = 120
+        self.booking_settings.min_time_before_booking_minutes = 0
+        self.booking_settings.max_days_ahead = 30
+        self.booking_settings.online_booking_percent = 100
+        self.booking_settings.reserved_for_walkin_count = 0
+        self.booking_settings.save()
+
+        self.future_date = timezone.localdate() + timedelta(days=5)
 
         self.table = RestaurantTable.objects.create(
             number=1,
@@ -55,8 +82,8 @@ class ReservationAPITests(APITestCase):
             'number': 2,
             'capacity': 6,
             'shape': 'rect',
-            'x': 200,
-            'y': 150,
+            'x': 250,
+            'y': 250,
             'width': 100,
             'height': 80,
             'zone': 'vip',
@@ -76,8 +103,8 @@ class ReservationAPITests(APITestCase):
             'number': 2,
             'capacity': 6,
             'shape': 'rect',
-            'x': 200,
-            'y': 150,
+            'x': 250,
+            'y': 250,
             'width': 100,
             'height': 80,
             'zone': 'vip',
@@ -89,25 +116,82 @@ class ReservationAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(RestaurantTable.objects.count(), 1)
 
-    def test_create_reservation_success(self):
+    def test_client_can_create_reservation_without_end_time(self):
         data = {
             'table': self.table.id,
             'client_name': 'Ivan Ivanov',
             'client_phone': '+79999999999',
             'client_email': 'ivan@example.com',
             'guest_count': 2,
-            'reservation_date': '2026-04-24',
+            'reservation_date': self.future_date.isoformat(),
             'start_time': '18:00:00',
-            'end_time': '20:00:00',
             'comment': 'Near the window',
-            'status': 'pending'
         }
 
         response = self.client.post(self.reservation_create_url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Reservation.objects.count(), 1)
-        self.assertEqual(Reservation.objects.first().client_name, 'Ivan Ivanov')
+
+        reservation = Reservation.objects.first()
+
+        self.assertEqual(reservation.client_name, 'Ivan Ivanov')
+        self.assertEqual(reservation.start_time, time(18, 0))
+        self.assertEqual(reservation.end_time, time(20, 0))
+        self.assertEqual(reservation.status, 'active')
+
+    def test_client_cannot_create_reservation_when_online_booking_disabled(self):
+        self.booking_settings.online_booking_enabled = False
+        self.booking_settings.save()
+
+        data = {
+            'table': self.table.id,
+            'client_name': 'Ivan Ivanov',
+            'client_phone': '+79999999999',
+            'client_email': 'ivan@example.com',
+            'guest_count': 2,
+            'reservation_date': self.future_date.isoformat(),
+            'start_time': '18:00:00',
+        }
+
+        response = self.client.post(self.reservation_create_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Reservation.objects.count(), 0)
+
+    def test_client_cannot_create_reservation_outside_booking_interval(self):
+        data = {
+            'table': self.table.id,
+            'client_name': 'Ivan Ivanov',
+            'client_phone': '+79999999999',
+            'client_email': 'ivan@example.com',
+            'guest_count': 2,
+            'reservation_date': self.future_date.isoformat(),
+            'start_time': '21:30:00',
+        }
+
+        response = self.client.post(self.reservation_create_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Reservation.objects.count(), 0)
+
+    def test_client_cannot_create_reservation_too_far_ahead(self):
+        too_far_date = timezone.localdate() + timedelta(days=60)
+
+        data = {
+            'table': self.table.id,
+            'client_name': 'Ivan Ivanov',
+            'client_phone': '+79999999999',
+            'client_email': 'ivan@example.com',
+            'guest_count': 2,
+            'reservation_date': too_far_date.isoformat(),
+            'start_time': '18:00:00',
+        }
+
+        response = self.client.post(self.reservation_create_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Reservation.objects.count(), 0)
 
     def test_cannot_create_reservation_if_guest_count_exceeds_capacity(self):
         data = {
@@ -116,11 +200,9 @@ class ReservationAPITests(APITestCase):
             'client_phone': '+79990000000',
             'client_email': 'big@example.com',
             'guest_count': 6,
-            'reservation_date': '2026-04-24',
+            'reservation_date': self.future_date.isoformat(),
             'start_time': '18:00:00',
-            'end_time': '20:00:00',
             'comment': '',
-            'status': 'pending'
         }
 
         response = self.client.post(self.reservation_create_url, data, format='json')
@@ -135,11 +217,11 @@ class ReservationAPITests(APITestCase):
             client_phone='+79991111111',
             client_email='first@example.com',
             guest_count=2,
-            reservation_date=date(2026, 4, 24),
+            reservation_date=self.future_date,
             start_time=time(18, 0),
             end_time=time(20, 0),
             comment='',
-            status='pending'
+            status='active'
         )
 
         data = {
@@ -148,11 +230,9 @@ class ReservationAPITests(APITestCase):
             'client_phone': '+79992222222',
             'client_email': 'second@example.com',
             'guest_count': 2,
-            'reservation_date': '2026-04-24',
+            'reservation_date': self.future_date.isoformat(),
             'start_time': '19:00:00',
-            'end_time': '21:00:00',
             'comment': 'Overlap attempt',
-            'status': 'pending'
         }
 
         response = self.client.post(self.reservation_create_url, data, format='json')
@@ -167,11 +247,11 @@ class ReservationAPITests(APITestCase):
             client_phone='+79991111111',
             client_email='first@example.com',
             guest_count=2,
-            reservation_date=date(2026, 4, 24),
+            reservation_date=self.future_date,
             start_time=time(18, 0),
             end_time=time(20, 0),
             comment='',
-            status='pending'
+            status='active'
         )
 
         data = {
@@ -180,11 +260,9 @@ class ReservationAPITests(APITestCase):
             'client_phone': '+79992222222',
             'client_email': 'second@example.com',
             'guest_count': 2,
-            'reservation_date': '2026-04-24',
+            'reservation_date': self.future_date.isoformat(),
             'start_time': '20:00:00',
-            'end_time': '22:00:00',
             'comment': 'No overlap',
-            'status': 'pending'
         }
 
         response = self.client.post(self.reservation_create_url, data, format='json')
@@ -196,9 +274,9 @@ class ReservationAPITests(APITestCase):
         second_table = RestaurantTable.objects.create(
             number=2,
             capacity=4,
-            shape='square',
-            x=220,
-            y=140,
+            shape='rect',
+            x=300,
+            y=300,
             width=80,
             height=80,
             zone='main',
@@ -211,29 +289,115 @@ class ReservationAPITests(APITestCase):
             client_phone='+79993333333',
             client_email='busy@example.com',
             guest_count=2,
-            reservation_date=date(2026, 4, 24),
+            reservation_date=self.future_date,
             start_time=time(18, 0),
             end_time=time(20, 0),
             comment='',
-            status='confirmed'
+            status='active'
         )
 
         response = self.client.get(
             self.available_tables_url,
             {
-                'date': '2026-04-24',
+                'date': self.future_date.isoformat(),
                 'start_time': '18:30:00',
-                'end_time': '19:30:00',
                 'guest_count': 2
             }
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         returned_ids = [table['id'] for table in response.data]
 
         self.assertIn(second_table.id, returned_ids)
         self.assertNotIn(self.table.id, returned_ids)
 
+    def test_available_tables_returns_400_when_online_booking_disabled(self):
+        self.booking_settings.online_booking_enabled = False
+        self.booking_settings.save()
+
+        response = self.client.get(
+            self.available_tables_url,
+            {
+                'date': self.future_date.isoformat(),
+                'start_time': '18:00:00',
+                'guest_count': 2
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_available_tables_returns_400_outside_booking_interval(self):
+        response = self.client.get(
+            self.available_tables_url,
+            {
+                'date': self.future_date.isoformat(),
+                'start_time': '21:30:00',
+                'guest_count': 2
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_available_tables_returns_400_too_far_ahead(self):
+        too_far_date = timezone.localdate() + timedelta(days=60)
+
+        response = self.client.get(
+            self.available_tables_url,
+            {
+                'date': too_far_date.isoformat(),
+                'start_time': '18:00:00',
+                'guest_count': 2
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_available_tables_respects_online_percent_and_walkin_reserve(self):
+        RestaurantTable.objects.create(
+            number=2,
+            capacity=4,
+            shape='rect',
+            x=300,
+            y=300,
+            width=80,
+            height=80,
+            zone='main',
+            is_active=True
+        )
+
+        RestaurantTable.objects.create(
+            number=3,
+            capacity=4,
+            shape='rect',
+            x=500,
+            y=300,
+            width=80,
+            height=80,
+            zone='main',
+            is_active=True
+        )
+
+        self.booking_settings.online_booking_percent = 50
+        self.booking_settings.reserved_for_walkin_count = 1
+        self.booking_settings.save()
+
+        response = self.client.get(
+            self.available_tables_url,
+            {
+                'date': self.future_date.isoformat(),
+                'start_time': '18:00:00',
+                'guest_count': 2
+            }
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Всего 3 активных столика.
+        # 50% = 1 столик.
+        # Резерв живой посадки: 3 - 1 = 2.
+        # min(1, 2) = 1 столик доступен онлайн.
+        self.assertEqual(len(response.data), 1)
 
     def test_can_create_non_overlapping_table(self):
         self.authenticate(self.admin_user)
@@ -241,7 +405,7 @@ class ReservationAPITests(APITestCase):
         data = {
             'number': 2,
             'capacity': 4,
-            'shape': 'square',
+            'shape': 'rect',
             'x': 250,
             'y': 250,
             'width': 80,
@@ -261,7 +425,7 @@ class ReservationAPITests(APITestCase):
         data = {
             'number': 2,
             'capacity': 4,
-            'shape': 'square',
+            'shape': 'rect',
             'x': 120,
             'y': 140,
             'width': 80,
@@ -282,7 +446,7 @@ class ReservationAPITests(APITestCase):
         second_table = RestaurantTable.objects.create(
             number=2,
             capacity=4,
-            shape='square',
+            shape='rect',
             x=300,
             y=300,
             width=80,

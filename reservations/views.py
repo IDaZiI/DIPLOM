@@ -1,8 +1,18 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import ValidationError
+
+from .services import (
+    get_booking_settings,
+    parse_booking_date,
+    parse_booking_time,
+    validate_online_booking_rules,
+    get_busy_tables_for_interval,
+    get_remaining_online_slots,
+)
 
 from .models import RestaurantTable, Reservation, TableFeature, BookingSettings, HallScheme
 from .serializers import (
@@ -11,6 +21,7 @@ from .serializers import (
     TableFeatureSerializer,
     BookingSettingsSerializer,
     HallSchemeSerializer,
+    ClientReservationSerializer,
 )
 from .permissions import IsAdminUserRole
 
@@ -55,84 +66,63 @@ class TableDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         instance.delete()
 
-
 class AvailableTablesView(generics.ListAPIView):
     serializer_class = RestaurantTableSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        date = self.request.query_params.get('date')
-        start_time = self.request.query_params.get('start_time')
-        end_time = self.request.query_params.get('end_time')
+        date_param = self.request.query_params.get('date')
+        start_time_param = self.request.query_params.get('start_time')
         guest_count = self.request.query_params.get('guest_count')
         feature_id = self.request.query_params.get('feature')
+
+        settings_obj = get_booking_settings()
+
+        reservation_date = parse_booking_date(date_param)
+        start_time = parse_booking_time(start_time_param)
+
+        try:
+            end_time = validate_online_booking_rules(
+                reservation_date,
+                start_time,
+                settings_obj,
+            )
+        except serializers.ValidationError as exc:
+            raise ValidationError(exc.detail)
 
         queryset = RestaurantTable.objects.filter(is_active=True)
 
         if guest_count:
-            queryset = queryset.filter(capacity__gte=guest_count)
+            queryset = queryset.filter(capacity__gte=int(guest_count))
 
         if feature_id:
             queryset = queryset.filter(features__id=feature_id)
 
-        if date and start_time and end_time:
-            busy_tables = Reservation.objects.filter(
-                reservation_date=date,
-                status='active',
-                start_time__lt=end_time,
-                end_time__gt=start_time,
-            ).values_list('table_id', flat=True)
+        busy_tables = get_busy_tables_for_interval(
+            reservation_date,
+            start_time,
+            end_time,
+        ).values_list('table_id', flat=True)
 
-            queryset = queryset.exclude(id__in=busy_tables)
+        queryset = queryset.exclude(id__in=busy_tables)
 
         queryset = queryset.distinct().order_by('number')
 
-        settings_obj, _ = BookingSettings.objects.get_or_create(
-            pk=1,
-            defaults={
-                'online_booking_enabled': True,
-                'online_booking_percent': 100,
-                'reserved_for_walkin_count': 0,
-            }
+        remaining_online_slots = get_remaining_online_slots(
+            reservation_date,
+            start_time,
+            end_time,
         )
 
-        if not settings_obj.online_booking_enabled:
-            return queryset.none()
-
-        total_active_tables = RestaurantTable.objects.filter(is_active=True).count()
-
-        if total_active_tables == 0:
-            return queryset.none()
-
-        percent_limit = (total_active_tables * settings_obj.online_booking_percent) // 100
-        reserve_limit = total_active_tables - settings_obj.reserved_for_walkin_count
-
-        allowed_online_tables = min(percent_limit, reserve_limit)
-        allowed_online_tables = max(0, allowed_online_tables)
-
-        if date and start_time and end_time:
-            online_booked_count = Reservation.objects.filter(
-                reservation_date=date,
-                status='active',
-                start_time__lt=end_time,
-                end_time__gt=start_time,
-            ).count()
-        else:
-            online_booked_count = 0
-
-        remaining_online_slots = max(0, allowed_online_tables - online_booked_count)
-
-        if remaining_online_slots == 0:
+        if remaining_online_slots <= 0:
             return queryset.none()
 
         return queryset[:remaining_online_slots]
 
-
 class ReservationCreateView(generics.CreateAPIView):
     queryset = Reservation.objects.all()
-    serializer_class = ReservationSerializer
+    serializer_class = ClientReservationSerializer
     permission_classes = [AllowAny]
-
 
 class ReservationListView(generics.ListCreateAPIView):
     serializer_class = ReservationSerializer
