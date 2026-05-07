@@ -274,6 +274,55 @@
   min-width: 140px;
 }
 
+.reservations-stat.finished {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.reservation-status.finished {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.reservation-card-subtitle {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.reservation-finished-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.reservation-form-hint {
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.reservation-form-hint.error {
+  color: #b91c1c;
+}
+
+.reservations-search-filter input {
+  min-width: 280px;
+}
+
+@media (max-width: 768px) {
+  .reservations-search-filter input {
+    min-width: 100%;
+  }
+}
+
 @media (max-width: 640px) {
   .reservation-card-grid {
     grid-template-columns: 1fr;

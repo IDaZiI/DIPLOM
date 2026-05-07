@@ -9,12 +9,7 @@ from .services import (
     is_reservation_finished,
 )
 
-from .services import (
-    get_booking_settings,
-    calculate_end_time,
-    validate_online_booking_rules,
-    get_remaining_online_slots,
-)
+MAX_TABLE_CAPACITY = 20
 
 def transliterate_ru(text):
     mapping = {
@@ -79,7 +74,6 @@ class TableFeatureSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-
 class RestaurantTableSerializer(serializers.ModelSerializer):
     features = serializers.PrimaryKeyRelatedField(
         queryset=TableFeature.objects.all(),
@@ -103,6 +97,22 @@ class RestaurantTableSerializer(serializers.ModelSerializer):
         y = attrs.get('y', instance.y if instance else 0)
         width = attrs.get('width', instance.width if instance else 80)
         height = attrs.get('height', instance.height if instance else 80)
+        capacity = attrs.get('capacity', instance.capacity if instance else None)
+
+        if capacity is None:
+            raise serializers.ValidationError(
+                'Укажите вместимость столика.'
+            )
+
+        if capacity < 1:
+            raise serializers.ValidationError(
+                'Вместимость столика должна быть не меньше 1 места.'
+            )
+
+        if capacity > MAX_TABLE_CAPACITY:
+            raise serializers.ValidationError(
+                f'Вместимость одного столика не может превышать {MAX_TABLE_CAPACITY} мест.'
+            )
 
         if width <= 0 or height <= 0:
             raise serializers.ValidationError(

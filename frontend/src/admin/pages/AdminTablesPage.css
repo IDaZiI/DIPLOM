@@ -596,6 +596,13 @@
   min-width: 220px;
 }
 
+.table-form-hint {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 /* Адаптив */
 @media (max-width: 768px) {
   .table-form {

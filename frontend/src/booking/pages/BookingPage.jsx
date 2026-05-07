@@ -4,6 +4,7 @@ import BookingSearchForm from '../components/BookingSearchForm'
 import AvailableTablesList from '../components/AvailableTablesList'
 import ReservationForm from '../components/ReservationForm'
 import ClientHallMap from '../components/ClientHallMap'
+import { formatRussianDate } from '../../utils/calendar'
 import {
   getAvailableTables,
   createReservation,
@@ -161,7 +162,7 @@ export default function BookingPage() {
 
           <div className="booking-success-details">
             <p>
-              <strong>Дата:</strong> {createdReservation.reservation_date}
+              <strong>Дата:</strong> {formatRussianDate(createdReservation.reservation_date)}
             </p>
 
             <p>
@@ -180,13 +181,13 @@ export default function BookingPage() {
             {createdReservation.table_details && (
               <p>
                 <strong>Столик:</strong>{' '}
-                №{createdReservation.table_details.number}, {createdReservation.table_details.capacity} мест
+                №{createdReservation.table_details.number}
               </p>
             )}
           </div>
 
           <p className="booking-success-note">
-            Сохраните номер бронирования. Он понадобится для просмотра или отмены бронирования.
+            При необходимости вы сможете найти бронирование по номеру телефона, указанному при оформлении.
           </p>
 
           <Link to="/my-reservation" className="btn btn-primary">

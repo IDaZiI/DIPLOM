@@ -68,3 +68,36 @@ export function isToday(date) {
 
   return compareDate.getTime() === today.getTime()
 }
+
+export function formatRussianDate(dateString) {
+  if (!dateString) return ''
+
+  const date = new Date(`${dateString}T00:00:00`)
+
+  return date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+export function formatReservationDateTime(dateString, startTime, endTime) {
+  const dateLabel = formatRussianDate(dateString)
+  const start = startTime?.slice(0, 5).replace(':', '.') || ''
+  const end = endTime?.slice(0, 5).replace(':', '.') || ''
+
+  if (!dateLabel) return ''
+  if (!start && !end) return dateLabel
+
+  return `${dateLabel} ${start} — ${end}`
+}
+
+export function isReservationFinished(reservation) {
+  if (!reservation?.reservation_date || !reservation?.end_time) return false
+
+  const endDateTime = new Date(
+    `${reservation.reservation_date}T${reservation.end_time}`
+  )
+
+  return endDateTime < new Date()
+}

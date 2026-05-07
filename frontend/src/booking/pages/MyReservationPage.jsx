@@ -57,10 +57,11 @@ const isReservationFinished = (reservation) => {
 
 export default function MyReservationPage() {
   const [formData, setFormData] = useState({
-    booking_code: '',
     client_phone: '',
   })
-  const [reservation, setReservation] = useState(null)
+
+  const [reservations, setReservations] = useState([])
+  const [selectedReservation, setSelectedReservation] = useState(null)
   const [loading, setLoading] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -80,16 +81,16 @@ export default function MyReservationPage() {
     setLoading(true)
     setError('')
     setSuccessMessage('')
-    setReservation(null)
+    setReservations([])
+    setSelectedReservation(null)
     setShowCancelModal(false)
 
     try {
       const data = await lookupReservation({
-        booking_code: formData.booking_code.trim(),
         client_phone: formData.client_phone.trim(),
       })
 
-      setReservation(data)
+      setReservations(Array.isArray(data) ? data : [data])
     } catch (err) {
       console.error(err)
       setError(getBackendErrorMessage(err, 'Не удалось найти бронирование.'))
@@ -99,17 +100,23 @@ export default function MyReservationPage() {
   }
 
   const handleCancelReservation = async () => {
+    if (!selectedReservation) return
+
     setCancelling(true)
     setError('')
     setSuccessMessage('')
 
     try {
       const data = await cancelClientReservation({
-        booking_code: reservation.booking_code,
-        client_phone: reservation.client_phone,
+        booking_code: selectedReservation.booking_code,
+        client_phone: selectedReservation.client_phone,
       })
 
-      setReservation(data)
+      setReservations((prev) =>
+        prev.map((item) => (item.id === data.id ? data : item))
+      )
+
+      setSelectedReservation(null)
       setShowCancelModal(false)
       setSuccessMessage('Бронирование отменено.')
     } catch (err) {
@@ -120,9 +127,6 @@ export default function MyReservationPage() {
     }
   }
 
-  const reservationFinished = isReservationFinished(reservation)
-  const visibleStatus = reservationFinished ? 'finished' : reservation?.status
-
   return (
     <div className="my-reservation-page">
       <header className="reservation-page-header">
@@ -130,7 +134,7 @@ export default function MyReservationPage() {
           <span className="reservation-page-label">Моё бронирование</span>
           <h1>Найти бронирование</h1>
           <p>
-            Введите номер бронирования и телефон, указанный при оформлении.
+            Введите номер телефона, который был указан при оформлении бронирования.
           </p>
         </div>
 
@@ -143,22 +147,11 @@ export default function MyReservationPage() {
         <div className="reservation-lookup-info">
           <h2>Данные для поиска</h2>
           <p>
-            Номер бронирования отображается после успешного оформления.
+            Мы найдём все бронирования, связанные с указанным номером телефона.
           </p>
         </div>
 
-        <form className="reservation-lookup-form" onSubmit={handleSearch}>
-          <label>
-            Номер бронирования
-            <input
-              type="text"
-              value={formData.booking_code}
-              onChange={(e) => handleChange('booking_code', e.target.value)}
-              placeholder="R-20260427-5A9A24"
-              required
-            />
-          </label>
-
+        <form className="reservation-lookup-form reservation-lookup-form-phone" onSubmit={handleSearch}>
           <label>
             Номер телефона
             <input
@@ -175,7 +168,7 @@ export default function MyReservationPage() {
             className="btn btn-primary reservation-search-btn"
             disabled={loading || cancelling}
           >
-            {loading ? 'Ищем...' : 'Найти'}
+            {loading ? 'Ищем...' : 'Найти бронирования'}
           </button>
         </form>
       </section>
@@ -183,106 +176,118 @@ export default function MyReservationPage() {
       {error && <p className="booking-message error">{error}</p>}
       {successMessage && <p className="booking-message success">{successMessage}</p>}
 
-      {reservation && (
-        <section className="reservation-result-card">
-          <div className="reservation-result-top">
-            <div>
-              <span className="reservation-result-label">Найдено</span>
-              <h2>Бронирование №{reservation.booking_code}</h2>
-            </div>
+      {reservations.length > 0 && (
+        <div className="reservation-results-list">
+          {reservations.map((reservation) => {
+            const reservationFinished = isReservationFinished(reservation)
+            const visibleStatus = reservationFinished ? 'finished' : reservation.status
 
-            <span className={`reservation-status ${visibleStatus}`}>
-              {reservationFinished
-                ? 'Завершено'
-                : statusLabels[reservation.status] || reservation.status}
-            </span>
-          </div>
+            return (
+              <section key={reservation.id} className="reservation-result-card">
+                <div className="reservation-result-top">
+                  <div>
+                    <span className="reservation-result-label">Найдено</span>
+                    <h2>Бронирование №{reservation.booking_code}</h2>
+                  </div>
 
-          <div className="reservation-details-grid">
-            <div className="reservation-detail">
-              <span>Клиент</span>
-              <strong>{reservation.client_name}</strong>
-            </div>
+                  <span className={`reservation-status ${visibleStatus}`}>
+                    {reservationFinished
+                      ? 'Завершено'
+                      : statusLabels[reservation.status] || reservation.status}
+                  </span>
+                </div>
 
-            <div className="reservation-detail">
-              <span>Телефон</span>
-              <strong>{reservation.client_phone}</strong>
-            </div>
+                <div className="reservation-details-grid">
+                  <div className="reservation-detail">
+                    <span>Клиент</span>
+                    <strong>{reservation.client_name}</strong>
+                  </div>
 
-            {reservation.client_email && (
-              <div className="reservation-detail">
-                <span>Email</span>
-                <strong>{reservation.client_email}</strong>
-              </div>
-            )}
+                  <div className="reservation-detail">
+                    <span>Телефон</span>
+                    <strong>{reservation.client_phone}</strong>
+                  </div>
 
-            <div className="reservation-detail">
-              <span>Дата</span>
-              <strong>{reservation.reservation_date}</strong>
-            </div>
+                  {reservation.client_email && (
+                    <div className="reservation-detail">
+                      <span>Email</span>
+                      <strong>{reservation.client_email}</strong>
+                    </div>
+                  )}
 
-            <div className="reservation-detail">
-              <span>Время</span>
-              <strong>
-                {formatTime(reservation.start_time)} – {formatTime(reservation.end_time)}
-              </strong>
-            </div>
+                  <div className="reservation-detail">
+                    <span>Дата</span>
+                    <strong>{reservation.reservation_date}</strong>
+                  </div>
 
-            <div className="reservation-detail">
-              <span>Гостей</span>
-              <strong>{reservation.guest_count}</strong>
-            </div>
+                  <div className="reservation-detail">
+                    <span>Время</span>
+                    <strong>
+                      {formatTime(reservation.start_time)} – {formatTime(reservation.end_time)}
+                    </strong>
+                  </div>
 
-            {reservation.table_details && (
-              <div className="reservation-detail">
-                <span>Столик</span>
-                <strong>
-                  №{reservation.table_details.number}, {reservation.table_details.capacity} мест
-                </strong>
-              </div>
-            )}
+                  <div className="reservation-detail">
+                    <span>Гостей</span>
+                    <strong>{reservation.guest_count}</strong>
+                  </div>
 
-            {reservation.comment && (
-              <div className="reservation-detail reservation-detail-wide">
-                <span>Комментарий</span>
-                <strong>{reservation.comment}</strong>
-              </div>
-            )}
-          </div>
+                  {reservation.table_details && (
+                    <div className="reservation-detail">
+                      <span>Столик</span>
+                      <strong>
+                        №{reservation.table_details.number}, {reservation.table_details.capacity} мест
+                      </strong>
+                    </div>
+                  )}
 
-          {reservation.status === 'active' && !reservationFinished && (
-            <div className="reservation-cancel-box">
-              <div>
-                <h3>Нужно отменить бронь?</h3>
-                <p>После отмены выбранный столик снова станет доступен.</p>
-              </div>
+                  {reservation.comment && (
+                    <div className="reservation-detail reservation-detail-wide">
+                      <span>Комментарий</span>
+                      <strong>{reservation.comment}</strong>
+                    </div>
+                  )}
+                </div>
 
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={() => setShowCancelModal(true)}
-                disabled={cancelling}
-              >
-                Отменить бронирование
-              </button>
-            </div>
-          )}
+                {reservation.status === 'active' && !reservationFinished && (
+                  <div className="reservation-cancel-box">
+                    <div>
+                      <h3>Нужно отменить бронь?</h3>
+                      <p>После отмены выбранный столик снова станет доступен.</p>
+                    </div>
 
-          {reservation.status === 'cancelled' && (
-            <p className="reservation-note cancelled">
-              Это бронирование уже отменено. Повторная отмена недоступна.
-            </p>
-          )}
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => {
+                        setSelectedReservation(reservation)
+                        setShowCancelModal(true)
+                      }}
+                      disabled={cancelling}
+                    >
+                      Отменить бронирование
+                    </button>
+                  </div>
+                )}
 
-          {reservationFinished && (
-            <p className="reservation-note finished">
-              Это бронирование уже завершено. Отмена завершённого бронирования недоступна.
-            </p>
-          )}
-        </section>
+                {reservation.status === 'cancelled' && (
+                  <p className="reservation-note cancelled">
+                    Это бронирование уже отменено. Повторная отмена недоступна.
+                  </p>
+                )}
+
+                {reservationFinished && (
+                  <p className="reservation-note finished">
+                    Это бронирование уже завершено. Отмена завершённого бронирования недоступна.
+                  </p>
+                )}
+              </section>
+            )
+          })}
+        </div>
       )}
 
-      {showCancelModal && (
+      {showCancelModal && selectedReservation && (
         <div
           className="client-modal-overlay"
           onClick={() => !cancelling && setShowCancelModal(false)}
@@ -290,7 +295,7 @@ export default function MyReservationPage() {
           <div className="client-modal" onClick={(event) => event.stopPropagation()}>
             <h2>Отменить бронирование?</h2>
             <p>
-              Вы уверены, что хотите отменить бронирование №{reservation.booking_code}?
+              Вы уверены, что хотите отменить бронирование №{selectedReservation?.booking_code}?
             </p>
 
             <div className="client-modal-actions">

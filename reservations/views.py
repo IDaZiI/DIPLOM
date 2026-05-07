@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -145,15 +147,36 @@ class ReservationListView(generics.ListCreateAPIView):
         reservation_status = self.request.query_params.get('status')
         reservation_date = self.request.query_params.get('date')
         table = self.request.query_params.get('table')
+        search = self.request.query_params.get('search')
 
-        if reservation_status:
-            queryset = queryset.filter(status=reservation_status)
+        now_date = timezone.localdate()
+        now_time = timezone.localtime().time()
+
+        finished_filter = Q(reservation_date__lt=now_date) | Q(
+            reservation_date=now_date,
+            end_time__lt=now_time
+        )
+
+        if reservation_status == 'active':
+            queryset = queryset.filter(status='active').exclude(finished_filter)
+
+        elif reservation_status == 'cancelled':
+            queryset = queryset.filter(status='cancelled')
+
+        elif reservation_status == 'finished':
+            queryset = queryset.filter(status='active').filter(finished_filter)
 
         if reservation_date:
             queryset = queryset.filter(reservation_date=reservation_date)
 
         if table:
             queryset = queryset.filter(table_id=table)
+
+        if search:
+            queryset = queryset.filter(
+                Q(client_name__icontains=search) |
+                Q(client_phone__icontains=search)
+            )
 
         return queryset
 
@@ -184,34 +207,33 @@ class BookingSettingsView(generics.RetrieveUpdateAPIView):
         )
         return settings_obj
 
-
 class ClientReservationLookupView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        booking_code = request.data.get('booking_code')
-        client_phone = request.data.get('client_phone')
+        client_phone = request.data.get('client_phone', '').strip()
 
-        if not booking_code or not client_phone:
+        if not client_phone:
             return Response(
-                {'detail': 'Укажите номер бронирования и номер телефона.'},
+                {'detail': 'Укажите номер телефона.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            reservation = Reservation.objects.get(
-                booking_code=booking_code,
-                client_phone=client_phone
-            )
-        except Reservation.DoesNotExist:
+        reservations = Reservation.objects.filter(
+            client_phone=client_phone
+        ).order_by(
+            '-reservation_date',
+            '-start_time'
+        )
+
+        if not reservations.exists():
             return Response(
-                {'detail': 'Бронирование с указанными данными не найдено.'},
+                {'detail': 'Бронирования с указанным номером телефона не найдены.'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = ReservationSerializer(reservation)
-        return Response(serializer.data)
-
+        serializer = ReservationSerializer(reservations, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class ClientReservationCancelView(APIView):
     permission_classes = [AllowAny]

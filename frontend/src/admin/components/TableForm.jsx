@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+const MAX_TABLE_CAPACITY = 20
+
 const getInitialFormState = (selectedTable, presetPosition) => {
   if (selectedTable) {
     return {
@@ -65,19 +67,26 @@ export default function TableForm({
   }
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+      e.preventDefault()
 
-    onSubmit({
-      ...formData,
-      number: Number(formData.number),
-      capacity: Number(formData.capacity),
-      x: Number(formData.x),
-      y: Number(formData.y),
-      width: Number(formData.width),
-      height: Number(formData.height),
-      features: formData.features,
-    })
-  }
+      const capacity = Number(formData.capacity)
+
+      if (capacity < 1 || capacity > MAX_TABLE_CAPACITY) {
+        e.target.reportValidity()
+        return
+      }
+
+      onSubmit({
+        ...formData,
+        number: Number(formData.number),
+        capacity,
+        x: Number(formData.x),
+        y: Number(formData.y),
+        width: Number(formData.width),
+        height: Number(formData.height),
+        features: formData.features,
+      })
+    }
 
   return (
     <form onSubmit={handleSubmit} className="table-form">
@@ -92,18 +101,29 @@ export default function TableForm({
           onChange={handleChange}
           required
         />
+
+        <small className="table-form-hint">
+          Номера столиков не должны повторяться.
+        </small>
       </div>
 
       <div className="table-form-row">
         <label htmlFor="capacity">Вместимость</label>
+
         <input
           id="capacity"
           type="number"
           name="capacity"
+          min="1"
+          max={MAX_TABLE_CAPACITY}
           value={formData.capacity}
           onChange={handleChange}
           required
         />
+
+        <small className="table-form-hint">
+          От 1 до {MAX_TABLE_CAPACITY} мест за одним столиком.
+        </small>
       </div>
 
       <div className="table-form-row">
