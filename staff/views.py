@@ -103,7 +103,7 @@ class WaiterListView(generics.ListCreateAPIView):
 
         return UserSerializer
     
-class WaiterDetailView(generics.RetrieveUpdateAPIView):
+class WaiterDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminUserRole]
     serializer_class = AdminWaiterUpdateSerializer
 

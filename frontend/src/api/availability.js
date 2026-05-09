@@ -51,3 +51,7 @@ export const getCurrentUser = async () => {
 export const getMyConfirmedShifts = async () => {
   return axios.get(`${BASE_API_URL}confirmed-shifts/`, getAuthHeader())
 }
+
+export const deleteWaiter = async (id) => {
+  return axios.delete(`${ADMIN_WAITERS_URL}${id}/`, getAuthHeader())
+}

@@ -2,34 +2,29 @@
   gap: 24px;
 }
 
-.admin-waiters-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 420px) 1fr;
+.admin-waiters-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 24px;
-  align-items: start;
 }
 
-.waiter-form {
+.admin-waiters-layout {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px;
 }
 
-.waiter-form h2,
-.waiters-list-card h2 {
-  margin: 0 0 18px;
-  color: var(--admin-text);
-  font-size: 28px;
-  line-height: 1.18;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-.waiter-form label,
-.waiter-edit-form label {
+.waiters-list-card-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.waiters-list-card .admin-section-title {
+  margin-bottom: 8px;
 }
 
 .waiters-list {
@@ -42,7 +37,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
   padding: 18px 20px;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
@@ -55,29 +50,36 @@
   box-shadow: 0 8px 22px rgba(37, 99, 235, 0.07);
 }
 
+.waiter-info {
+  min-width: 0;
+}
+
+.waiter-info strong,
 .waiter-item strong {
+  color: var(--admin-text);
+  font-size: 18px;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .waiter-item p {
   margin: 4px 0 0;
   color: var(--admin-muted);
   line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-.waiter-role,
 .waiter-status {
   flex-shrink: 0;
-  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: 999px;
   font-weight: 600;
   font-size: 14px;
   line-height: 1;
-}
-
-.waiter-role {
-  background: var(--admin-blue-soft);
-  color: var(--admin-blue-dark);
 }
 
 .waiter-status.active {
@@ -93,9 +95,10 @@
 .waiter-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .waiter-edit-form {
@@ -105,18 +108,17 @@
   flex: 1;
 }
 
+.waiter-edit-form label,
+.waiter-modal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .waiter-login-hint {
   grid-column: 1 / -1;
   margin: 0;
   color: var(--admin-muted);
-}
-
-.waiter-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .waiter-edit-btn {
@@ -129,38 +131,131 @@
 }
 
 .waiter-toggle-btn {
-  min-width: 170px;
+  min-width: 150px;
 }
 
-@media (max-width: 768px) {
-  .waiter-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
+.waiter-delete-btn {
+  min-width: 110px;
+}
 
-  .waiter-actions .admin-btn {
-    width: 100%;
-  }
+.admin-waiters-page .admin-btn.success {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.admin-waiters-page .admin-btn.success:hover {
+  background: #15803d;
+}
+
+.admin-waiters-page .admin-btn.warning {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.admin-waiters-page .admin-btn.warning:hover {
+  background: #d97706;
+}
+
+.waiter-modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.waiter-modal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.waiter-modal-actions .admin-btn {
+  min-width: 190px;
+}
+
+.waiter-confirm-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.waiter-confirm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.waiter-confirm-icon.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.waiter-confirm-icon.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.waiter-confirm-icon.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.waiter-confirm-modal p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.waiter-confirm-name {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: var(--admin-text) !important;
+  font-weight: 600;
+}
+
+.waiter-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.waiter-confirm-actions .admin-btn {
+  min-width: 150px;
 }
 
 @media (max-width: 900px) {
-  .admin-waiters-layout {
-    grid-template-columns: 1fr;
-  }
-
   .waiter-edit-form {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .waiter-item {
-    align-items: flex-start;
+  .admin-waiters-hero {
+    align-items: stretch;
     flex-direction: column;
   }
 
-  .waiter-role {
-    align-self: flex-start;
+  .admin-waiters-hero .admin-btn {
+    width: 100%;
+  }
+
+  .waiter-item {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .waiter-actions {
@@ -170,5 +265,21 @@
 
   .waiter-actions .admin-btn {
     flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .waiter-modal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .waiter-modal-actions,
+  .waiter-confirm-actions {
+    flex-direction: column;
+  }
+
+  .waiter-modal-actions .admin-btn,
+  .waiter-confirm-actions .admin-btn {
+    width: 100%;
+    min-width: 0;
   }
 }
